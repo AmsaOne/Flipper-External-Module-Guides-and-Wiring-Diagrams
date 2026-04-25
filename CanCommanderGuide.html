@@ -1,0 +1,416 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>CAN Bus Module for Flipper Zero — Build Guide</title>
+<style>
+  body { font-family: -apple-system, Segoe UI, Roboto, sans-serif; max-width: 900px; margin: 2em auto; padding: 0 1em; color: #222; line-height: 1.55; }
+  h1 { border-bottom: 2px solid #333; padding-bottom: .3em; }
+  h2 { border-bottom: 1px solid #ccc; padding-bottom: .2em; margin-top: 2em; }
+  h3 { margin-top: 1.5em; }
+  table { border-collapse: collapse; width: 100%; margin: 1em 0; font-size: .95em; }
+  th, td { border: 1px solid #aaa; padding: .4em .6em; text-align: left; vertical-align: top; }
+  th { background: #f0f0f0; }
+  tr:nth-child(even) td { background: #fafafa; }
+  pre { background: #1e1e1e; color: #d4d4d4; padding: 1em; overflow-x: auto; border-radius: 4px; font-family: Consolas, Menlo, monospace; font-size: .88em; line-height: 1.35; }
+  code { background: #eee; padding: 1px 4px; border-radius: 3px; font-family: Consolas, Menlo, monospace; }
+  pre code { background: transparent; padding: 0; color: inherit; }
+  .warn { background: #fff4e5; border-left: 4px solid #ff8800; padding: .8em 1em; margin: 1em 0; }
+  .ok   { background: #e9f7ec; border-left: 4px solid #2c8a3a; padding: .8em 1em; margin: 1em 0; }
+  hr { border: none; border-top: 1px solid #ccc; margin: 2.5em 0; }
+  ul li { margin: .3em 0; }
+</style>
+</head>
+<body>
+
+<h1>CAN Bus Module for Flipper Zero — Build Guide</h1>
+
+
+<hr>
+
+<h2>1. Wiring Diagram — Complete Interconnection Reference</h2>
+
+<h3>1.1 The Three Physical Things You're Connecting</h3>
+
+<pre>┌───────────────────┐     ┌──────────────────────┐     ┌────────────────────┐
+│                   │     │                      │     │                    │
+│   FLIPPER ZERO    │     │  MCP2515 + TJA1050   │     │   OBD-II PIGTAIL   │
+│   (via protoboard)│     │   (blue module)      │     │   (16-pin male)    │
+│                   │     │                      │     │                    │
+│   18-pin header   │     │   8-pin SPI header   │     │   16 flying leads  │
+│                   │     │   2-pin CAN screw    │     │                    │
+└───────────────────┘     └──────────────────────┘     └────────────────────┘</pre>
+
+<p>That's it — three modules, no buck converter, no switch.</p>
+
+<h3>1.2 Every Wire, One at a Time (10 Total)</h3>
+
+<p>Use this as a build checklist. The <b>From</b> and <b>To</b> columns use the <i>exact silkscreen labels</i> printed on each board — no jargon mixed in.</p>
+
+<div class="ok"><b>Reading the labels:</b>
+<ul>
+<li><b>Flipper Zero / protoboard</b> silkscreen: pin numbers (1-18) plus the GPIO name like <code>PA7</code>, <code>PA6</code>, <code>PA4</code>, <code>PB3</code>, <code>PB2</code>. There are no labels saying "MOSI" or "MISO" — those are SPI protocol roles, not printed on the board.</li>
+<li><b>MCP2515 module</b> silkscreen: <code>VCC</code>, <code>GND</code>, <code>CS</code>, <code>SO</code>, <code>SI</code>, <code>SCK</code>, <code>INT</code> (printed next to the 8-pin header).</li>
+<li><b>OBD-II pigtail</b>: pins 1-16, identified by wire color from the manufacturer's datasheet (varies — confirm with multimeter continuity if unsure).</li>
+</ul>
+</div>
+
+<table>
+<thead>
+<tr><th>#</th><th>Wire color</th><th>From (Flipper / OBD label)</th><th>To (MCP2515 label)</th><th>Notes</th></tr>
+</thead>
+<tbody>
+<tr><td colspan="5"><b>Power from Flipper</b></td></tr>
+<tr><td>1</td><td>Red</td><td>Flipper <b>Pin 1</b> — silkscreen <code>5V</code></td><td>MCP2515 <b>VCC</b></td><td>Enable in Settings → GPIO → 5V on GPIO Pin → ON</td></tr>
+<tr><td>2</td><td>Black</td><td>Flipper <b>Pin 8</b> — silkscreen <code>GND</code></td><td>MCP2515 <b>GND</b></td><td>Always connected</td></tr>
+<tr><td colspan="5"><b>SPI signal bundle — 4 wires between Flipper and MCP2515</b></td></tr>
+<tr><td>3</td><td>Yellow</td><td>Flipper <b>Pin 2</b> — silkscreen <code>PA7</code></td><td>MCP2515 <b>SI</b></td><td>(acts as SPI MOSI)</td></tr>
+<tr><td>4</td><td>Green</td><td>Flipper <b>Pin 3</b> — silkscreen <code>PA6</code></td><td>MCP2515 <b>SO</b></td><td>(acts as SPI MISO)</td></tr>
+<tr><td>5</td><td>Blue</td><td>Flipper <b>Pin 4</b> — silkscreen <code>PA4</code></td><td>MCP2515 <b>CS</b></td><td>(chip select)</td></tr>
+<tr><td>6</td><td>Orange</td><td>Flipper <b>Pin 5</b> — silkscreen <code>PB3</code></td><td>MCP2515 <b>SCK</b></td><td>(SPI clock)</td></tr>
+<tr><td colspan="5"><b>Optional — INT pin</b></td></tr>
+<tr><td>7</td><td>Purple</td><td>Flipper <b>Pin 6</b> — silkscreen <code>PB2</code></td><td>MCP2515 <b>INT</b></td><td>Optional. Electronic Cats app <b>does not use INT</b> — you can leave the MCP2515 INT pin unconnected. Wire it only for future-proofing. <b>Never wire INT to VCC or GND.</b></td></tr>
+<tr><td colspan="5"><b>CAN bus — OBD-II pigtail to MCP2515</b></td></tr>
+<tr><td>8</td><td>White</td><td>OBD-II <b>Pin 6</b></td><td>MCP2515 <b>CANH</b></td><td>CAN High</td></tr>
+<tr><td>9</td><td>Brown</td><td>OBD-II <b>Pin 14</b></td><td>MCP2515 <b>CANL</b></td><td>CAN Low</td></tr>
+<tr><td colspan="5"><b>Common ground bond — must connect</b></td></tr>
+<tr><td>10</td><td>Black</td><td>OBD-II <b>Pin 4</b> or <b>Pin 5</b></td><td>Flipper <b>Pin 8</b> (<code>GND</code>) / MCP2515 <b>GND</b> rail</td><td>Single common ground net. <b>Do not skip</b> — see section 1.5.</td></tr>
+</tbody>
+</table>
+
+<p><b>Minimum: 9 wires</b> (skip #7 if leaving INT unconnected). <b>Maximum: 10 wires</b> (with INT). No 12V anywhere in this build.</p>
+
+<h3>1.3 Visual Interconnection Diagram</h3>
+
+<p>Each colored line is one jumper wire. The numbered badges (1-10) match the build checklist in section 1.2 — wire #N in the table is the line tagged <b>N</b> in the diagram. The dashed purple line is optional (INT pin).</p>
+
+<div style="background:#fafafa; border:1px solid #ddd; border-radius:6px; padding:8px; overflow-x:auto; margin:1em 0;">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 740" width="100%" style="max-width:1200px; display:block; margin:0 auto;"
+     font-family="-apple-system,Segoe UI,Roboto,Helvetica,sans-serif" font-size="12">
+
+  <rect width="1200" height="740" fill="#fafafa"/>
+
+  <text x="600" y="28" text-anchor="middle" font-size="20" font-weight="bold" fill="#222">CAN Bus Module Wiring</text>
+  <text x="600" y="50" text-anchor="middle" font-size="12" fill="#555">Flipper Zero + MCP2515 + OBD-II · 10 wires · power from Flipper · ground bonded to vehicle · INT optional (dashed)</text>
+
+  <!-- FLIPPER ZERO -->
+  <rect x="40" y="70" width="240" height="630" rx="14" fill="#ff8c1a" stroke="#222" stroke-width="2"/>
+  <text x="160" y="100" text-anchor="middle" font-size="15" font-weight="bold" fill="#fff">FLIPPER ZERO</text>
+  <text x="160" y="118" text-anchor="middle" font-size="10" fill="#fff">18-pin GPIO (via protoboard)</text>
+
+  <circle cx="270" cy="145" r="7" fill="#ffd700" stroke="#000" stroke-width="2"/>
+  <text x="258" y="149" text-anchor="end" font-size="12" font-weight="bold" fill="#fff">1 — 5V</text>
+  <circle cx="270" cy="175" r="7" fill="#ffd700" stroke="#000" stroke-width="2"/>
+  <text x="258" y="179" text-anchor="end" font-size="12" font-weight="bold" fill="#fff">2 — PA7</text>
+  <circle cx="270" cy="205" r="7" fill="#ffd700" stroke="#000" stroke-width="2"/>
+  <text x="258" y="209" text-anchor="end" font-size="12" font-weight="bold" fill="#fff">3 — PA6</text>
+  <circle cx="270" cy="235" r="7" fill="#ffd700" stroke="#000" stroke-width="2"/>
+  <text x="258" y="239" text-anchor="end" font-size="12" font-weight="bold" fill="#fff">4 — PA4</text>
+  <circle cx="270" cy="265" r="7" fill="#ffd700" stroke="#000" stroke-width="2"/>
+  <text x="258" y="269" text-anchor="end" font-size="12" font-weight="bold" fill="#fff">5 — PB3</text>
+  <circle cx="270" cy="295" r="7" fill="#ffd700" stroke="#000" stroke-width="2"/>
+  <text x="258" y="299" text-anchor="end" font-size="12" font-weight="bold" fill="#fff">6 — PB2</text>
+  <circle cx="270" cy="325" r="4" fill="#ffd700" opacity="0.4"/>
+  <text x="258" y="329" text-anchor="end" font-size="10" fill="#fff" opacity="0.6">7 — PC3</text>
+  <circle cx="270" cy="355" r="7" fill="#ffd700" stroke="#000" stroke-width="2"/>
+  <text x="258" y="359" text-anchor="end" font-size="12" font-weight="bold" fill="#fff">8 — GND</text>
+  <circle cx="270" cy="385" r="4" fill="#ffd700" opacity="0.4"/>
+  <text x="258" y="389" text-anchor="end" font-size="10" fill="#fff" opacity="0.6">9 — 3V3</text>
+  <circle cx="270" cy="415" r="7" fill="#dc2626" stroke="#000" stroke-width="2"/>
+  <text x="258" y="419" text-anchor="end" font-size="11" font-weight="bold" fill="#fee2e2">⚠ 10 — SWC</text>
+  <circle cx="270" cy="445" r="4" fill="#ffd700" opacity="0.4"/>
+  <text x="258" y="449" text-anchor="end" font-size="10" fill="#fff" opacity="0.6">11 — GND</text>
+  <circle cx="270" cy="475" r="7" fill="#dc2626" stroke="#000" stroke-width="2"/>
+  <text x="258" y="479" text-anchor="end" font-size="11" font-weight="bold" fill="#fee2e2">⚠ 12 — SIO</text>
+  <circle cx="270" cy="505" r="4" fill="#ffd700" opacity="0.4"/>
+  <text x="258" y="509" text-anchor="end" font-size="10" fill="#fff" opacity="0.6">13 — TX</text>
+  <circle cx="270" cy="535" r="4" fill="#ffd700" opacity="0.4"/>
+  <text x="258" y="539" text-anchor="end" font-size="10" fill="#fff" opacity="0.6">14 — RX</text>
+  <circle cx="270" cy="565" r="4" fill="#ffd700" opacity="0.4"/>
+  <text x="258" y="569" text-anchor="end" font-size="10" fill="#fff" opacity="0.6">15 — PC1</text>
+  <circle cx="270" cy="595" r="4" fill="#ffd700" opacity="0.4"/>
+  <text x="258" y="599" text-anchor="end" font-size="10" fill="#fff" opacity="0.6">16 — PC0</text>
+  <circle cx="270" cy="625" r="4" fill="#ffd700" opacity="0.4"/>
+  <text x="258" y="629" text-anchor="end" font-size="10" fill="#fff" opacity="0.6">17 — 1W</text>
+  <circle cx="270" cy="655" r="4" fill="#ffd700" opacity="0.4"/>
+  <text x="258" y="659" text-anchor="end" font-size="10" fill="#fff" opacity="0.6">18 — GND</text>
+  <text x="160" y="688" text-anchor="middle" font-size="10" fill="#fff" font-style="italic">silkscreen labels shown</text>
+
+  <!-- MCP2515 -->
+  <rect x="480" y="220" width="260" height="290" rx="8" fill="#1e3a8a" stroke="#222" stroke-width="2"/>
+  <text x="610" y="248" text-anchor="middle" font-size="14" font-weight="bold" fill="#fff">MCP2515 + TJA1050</text>
+  <text x="610" y="265" text-anchor="middle" font-size="10" fill="#fff" opacity="0.85">(blue module · classic CAN 2.0)</text>
+  <rect x="540" y="290" width="70" height="40" fill="#0a1c4a" stroke="#fff" stroke-width="1" opacity="0.9"/>
+  <text x="575" y="313" text-anchor="middle" font-size="9" fill="#fff">MCP2515</text>
+  <rect x="620" y="290" width="80" height="40" fill="#0a1c4a" stroke="#fff" stroke-width="1" opacity="0.9"/>
+  <text x="660" y="313" text-anchor="middle" font-size="9" fill="#fff">TJA1050</text>
+  <text x="610" y="495" text-anchor="middle" font-size="9" fill="#fff" font-style="italic" opacity="0.7">120Ω terminator (J1) · leave OFF on vehicle</text>
+
+  <circle cx="480" cy="290" r="7" fill="#ffd700" stroke="#000" stroke-width="2"/>
+  <text x="495" y="294" font-size="12" font-weight="bold" fill="#fff">VCC</text>
+  <circle cx="480" cy="320" r="7" fill="#ffd700" stroke="#000" stroke-width="2"/>
+  <text x="495" y="324" font-size="12" font-weight="bold" fill="#fff">GND</text>
+  <circle cx="480" cy="350" r="7" fill="#ffd700" stroke="#000" stroke-width="2"/>
+  <text x="495" y="354" font-size="12" font-weight="bold" fill="#fff">CS</text>
+  <circle cx="480" cy="380" r="7" fill="#ffd700" stroke="#000" stroke-width="2"/>
+  <text x="495" y="384" font-size="12" font-weight="bold" fill="#fff">SO</text>
+  <circle cx="480" cy="410" r="7" fill="#ffd700" stroke="#000" stroke-width="2"/>
+  <text x="495" y="414" font-size="12" font-weight="bold" fill="#fff">SI</text>
+  <circle cx="480" cy="440" r="7" fill="#ffd700" stroke="#000" stroke-width="2"/>
+  <text x="495" y="444" font-size="12" font-weight="bold" fill="#fff">SCK</text>
+  <circle cx="480" cy="470" r="7" fill="#ffd700" stroke="#000" stroke-width="2"/>
+  <text x="495" y="474" font-size="12" font-weight="bold" fill="#fff">INT</text>
+
+  <rect x="725" y="320" width="30" height="100" fill="#0a1c4a" stroke="#fff" stroke-width="1" opacity="0.85"/>
+  <circle cx="740" cy="340" r="7" fill="#ffd700" stroke="#000" stroke-width="2"/>
+  <text x="722" y="344" text-anchor="end" font-size="12" font-weight="bold" fill="#fff">CANH</text>
+  <circle cx="740" cy="400" r="7" fill="#ffd700" stroke="#000" stroke-width="2"/>
+  <text x="722" y="404" text-anchor="end" font-size="12" font-weight="bold" fill="#fff">CANL</text>
+
+  <!-- OBD-II -->
+  <rect x="900" y="110" width="260" height="180" rx="8" fill="#2d3748" stroke="#222" stroke-width="2"/>
+  <text x="1030" y="135" text-anchor="middle" font-size="14" font-weight="bold" fill="#fff">OBD-II 16-PIN PIGTAIL</text>
+  <text x="1030" y="152" text-anchor="middle" font-size="10" fill="#fff" opacity="0.8">(SAE J1962 male plug · 3 wires used)</text>
+
+  <circle cx="925" cy="185" r="4" fill="#666"/><text x="925" y="172" text-anchor="middle" font-size="9" fill="#aaa">1</text>
+  <circle cx="955" cy="185" r="4" fill="#666"/><text x="955" y="172" text-anchor="middle" font-size="9" fill="#aaa">2</text>
+  <circle cx="985" cy="185" r="4" fill="#666"/><text x="985" y="172" text-anchor="middle" font-size="9" fill="#aaa">3</text>
+  <circle cx="1015" cy="185" r="5" fill="#999" stroke="#000"/><text x="1015" y="172" text-anchor="middle" font-size="9" fill="#fff">4</text>
+  <circle cx="1045" cy="185" r="7" fill="#ffd700" stroke="#000" stroke-width="2"/><text x="1045" y="172" text-anchor="middle" font-size="10" font-weight="bold" fill="#fff">5</text>
+  <text x="1045" y="207" text-anchor="middle" font-size="9" fill="#fff" font-weight="bold">GND</text>
+  <circle cx="1075" cy="185" r="7" fill="#ffd700" stroke="#000" stroke-width="2"/><text x="1075" y="172" text-anchor="middle" font-size="10" font-weight="bold" fill="#fff">6</text>
+  <text x="1075" y="207" text-anchor="middle" font-size="9" fill="#fff" font-weight="bold">CAN-H</text>
+  <circle cx="1105" cy="185" r="4" fill="#666"/><text x="1105" y="172" text-anchor="middle" font-size="9" fill="#aaa">7</text>
+  <circle cx="1135" cy="185" r="4" fill="#666"/><text x="1135" y="172" text-anchor="middle" font-size="9" fill="#aaa">8</text>
+  <circle cx="925" cy="240" r="4" fill="#666"/><text x="925" y="259" text-anchor="middle" font-size="9" fill="#aaa">9</text>
+  <circle cx="955" cy="240" r="4" fill="#666"/><text x="955" y="259" text-anchor="middle" font-size="9" fill="#aaa">10</text>
+  <circle cx="985" cy="240" r="4" fill="#666"/><text x="985" y="259" text-anchor="middle" font-size="9" fill="#aaa">11</text>
+  <circle cx="1015" cy="240" r="4" fill="#666"/><text x="1015" y="259" text-anchor="middle" font-size="9" fill="#aaa">12</text>
+  <circle cx="1045" cy="240" r="4" fill="#666"/><text x="1045" y="259" text-anchor="middle" font-size="9" fill="#aaa">13</text>
+  <circle cx="1075" cy="240" r="7" fill="#ffd700" stroke="#000" stroke-width="2"/><text x="1075" y="259" text-anchor="middle" font-size="10" font-weight="bold" fill="#fff">14</text>
+  <text x="1075" y="226" text-anchor="middle" font-size="9" fill="#fff" font-weight="bold">CAN-L</text>
+  <circle cx="1105" cy="240" r="4" fill="#666"/><text x="1105" y="259" text-anchor="middle" font-size="9" fill="#aaa">15</text>
+  <circle cx="1135" cy="240" r="6" fill="#dc2626" stroke="#000" stroke-width="1.5"/><text x="1135" y="259" text-anchor="middle" font-size="10" font-weight="bold" fill="#fff">16</text>
+  <text x="1135" y="226" text-anchor="middle" font-size="9" fill="#fca5a5" font-weight="bold">+12V ✗</text>
+  <text x="1030" y="282" text-anchor="middle" font-size="9" fill="#fff" font-style="italic" opacity="0.8">other pins: cap or trim</text>
+
+  <!-- Wires -->
+  <path d="M 277 145 C 380 145, 380 290, 473 290" stroke="#dc2626" stroke-width="4" fill="none" stroke-linecap="round"/>
+  <path d="M 277 355 C 380 355, 380 320, 473 320" stroke="#0f172a" stroke-width="4" fill="none" stroke-linecap="round"/>
+  <path d="M 277 175 C 380 175, 380 410, 473 410" stroke="#facc15" stroke-width="4" fill="none" stroke-linecap="round"/>
+  <path d="M 277 205 C 380 205, 380 380, 473 380" stroke="#16a34a" stroke-width="4" fill="none" stroke-linecap="round"/>
+  <path d="M 277 235 C 380 235, 380 350, 473 350" stroke="#2563eb" stroke-width="4" fill="none" stroke-linecap="round"/>
+  <path d="M 277 265 C 380 265, 380 440, 473 440" stroke="#ea580c" stroke-width="4" fill="none" stroke-linecap="round"/>
+  <path d="M 277 295 C 380 295, 380 470, 473 470" stroke="#9333ea" stroke-width="4" fill="none" stroke-linecap="round" stroke-dasharray="9,5"/>
+  <path d="M 1075 192 C 1075 270, 770 280, 747 340" stroke="#000" stroke-width="6.5" fill="none" stroke-linecap="round"/>
+  <path d="M 1075 192 C 1075 270, 770 280, 747 340" stroke="#fff" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+  <path d="M 1075 247 C 1075 360, 800 380, 747 400" stroke="#92400e" stroke-width="4" fill="none" stroke-linecap="round"/>
+  <path d="M 1045 178 C 1045 90, 480 90, 473 320" stroke="#0f172a" stroke-width="4" fill="none" stroke-linecap="round"/>
+
+  <!-- Numbered badges -->
+  <g font-size="11" font-weight="bold" text-anchor="middle">
+    <circle cx="450" cy="290" r="11" fill="#fff" stroke="#000" stroke-width="1.5"/><text x="450" y="294" fill="#000">1</text>
+    <circle cx="450" cy="320" r="11" fill="#fff" stroke="#000" stroke-width="1.5"/><text x="450" y="324" fill="#000">2</text>
+    <circle cx="450" cy="410" r="11" fill="#fff" stroke="#000" stroke-width="1.5"/><text x="450" y="414" fill="#000">3</text>
+    <circle cx="450" cy="380" r="11" fill="#fff" stroke="#000" stroke-width="1.5"/><text x="450" y="384" fill="#000">4</text>
+    <circle cx="450" cy="350" r="11" fill="#fff" stroke="#000" stroke-width="1.5"/><text x="450" y="354" fill="#000">5</text>
+    <circle cx="450" cy="440" r="11" fill="#fff" stroke="#000" stroke-width="1.5"/><text x="450" y="444" fill="#000">6</text>
+    <circle cx="450" cy="470" r="11" fill="#fff" stroke="#000" stroke-width="1.5"/><text x="450" y="474" fill="#000">7</text>
+    <circle cx="770" cy="340" r="11" fill="#fff" stroke="#000" stroke-width="1.5"/><text x="770" y="344" fill="#000">8</text>
+    <circle cx="770" cy="400" r="11" fill="#fff" stroke="#000" stroke-width="1.5"/><text x="770" y="404" fill="#000">9</text>
+    <circle cx="700" cy="80" r="13" fill="#fff" stroke="#000" stroke-width="1.5"/><text x="700" y="85" fill="#000">10</text>
+  </g>
+
+  <!-- Legend -->
+  <g transform="translate(485, 540)">
+    <rect x="0" y="0" width="630" height="170" rx="6" fill="#fff" stroke="#bbb"/>
+    <text x="12" y="20" font-size="13" font-weight="bold" fill="#222">Wire legend (numbers match build checklist in section 1.2)</text>
+    <line x1="20" y1="42" x2="60" y2="42" stroke="#dc2626" stroke-width="4" stroke-linecap="round"/>
+    <text x="68" y="46" font-size="11" fill="#222"><tspan font-weight="bold">1</tspan>  Red — Pin 1 (5V) → VCC  ·  power</text>
+    <line x1="20" y1="62" x2="60" y2="62" stroke="#0f172a" stroke-width="4" stroke-linecap="round"/>
+    <text x="68" y="66" font-size="11" fill="#222"><tspan font-weight="bold">2</tspan>  Black — Pin 8 (GND) → GND  ·  signal ground</text>
+    <line x1="20" y1="82" x2="60" y2="82" stroke="#facc15" stroke-width="4" stroke-linecap="round"/>
+    <text x="68" y="86" font-size="11" fill="#222"><tspan font-weight="bold">3</tspan>  Yellow — Pin 2 (PA7) → SI  ·  SPI MOSI</text>
+    <line x1="20" y1="102" x2="60" y2="102" stroke="#16a34a" stroke-width="4" stroke-linecap="round"/>
+    <text x="68" y="106" font-size="11" fill="#222"><tspan font-weight="bold">4</tspan>  Green — Pin 3 (PA6) → SO  ·  SPI MISO</text>
+    <line x1="20" y1="122" x2="60" y2="122" stroke="#2563eb" stroke-width="4" stroke-linecap="round"/>
+    <text x="68" y="126" font-size="11" fill="#222"><tspan font-weight="bold">5</tspan>  Blue — Pin 4 (PA4) → CS  ·  chip select</text>
+    <line x1="330" y1="42" x2="370" y2="42" stroke="#ea580c" stroke-width="4" stroke-linecap="round"/>
+    <text x="378" y="46" font-size="11" fill="#222"><tspan font-weight="bold">6</tspan>  Orange — Pin 5 (PB3) → SCK  ·  SPI clock</text>
+    <line x1="330" y1="62" x2="370" y2="62" stroke="#9333ea" stroke-width="4" stroke-linecap="round" stroke-dasharray="6,4"/>
+    <text x="378" y="66" font-size="11" fill="#222"><tspan font-weight="bold">7</tspan>  Purple (dashed) — Pin 6 (PB2) → INT  ·  optional</text>
+    <line x1="330" y1="82" x2="370" y2="82" stroke="#000" stroke-width="6"/>
+    <line x1="330" y1="82" x2="370" y2="82" stroke="#fff" stroke-width="3.5"/>
+    <text x="378" y="86" font-size="11" fill="#222"><tspan font-weight="bold">8</tspan>  White — OBD pin 6 → CANH  ·  CAN High</text>
+    <line x1="330" y1="102" x2="370" y2="102" stroke="#92400e" stroke-width="4" stroke-linecap="round"/>
+    <text x="378" y="106" font-size="11" fill="#222"><tspan font-weight="bold">9</tspan>  Brown — OBD pin 14 → CANL  ·  CAN Low</text>
+    <line x1="330" y1="122" x2="370" y2="122" stroke="#0f172a" stroke-width="4" stroke-linecap="round"/>
+    <text x="378" y="126" font-size="11" fill="#222"><tspan font-weight="bold">10</tspan>  Black — OBD pin 5 → GND  ·  vehicle ground bond</text>
+    <text x="12" y="156" font-size="10" fill="#666" font-style="italic">Wire 10 ties OBD ground to the same net as Flipper Pin 8 / MCP GND — single common ground required for valid CAN reception.</text>
+  </g>
+
+</svg>
+</div>
+
+<h3>1.4 OBD-II Pigtail — Which Pins You Actually Use</h3>
+
+<p>Your OBD-II pigtail is a male 16-pin connector with flying leads. Only <b>three</b> of the 16 wires are used:</p>
+
+<pre>        OBD-II Connector (looking at the face of the male plug)
+         ┌──────────────────────────────────┐
+         │  8   7   6●  5●  4●  3   2   1   │
+         │                                  │
+         │  16  15  14● 13  12  11  10  9   │
+         └──────────────────────────────────┘
+
+ Pin 4  ● Chassis Ground  →  Flipper Pin 8 / MCP2515 GND rail (common ground)
+ Pin 5  ● Signal Ground   →  (same as pin 4 — use whichever your pigtail exposes;
+                              if both, only one needs to be wired)
+ Pin 6  ● CAN High        →  MCP2515 CANH (White)
+ Pin 14 ● CAN Low         →  MCP2515 CANL (Brown)
+
+ Pin 16  NOT USED (would be +12V — we're not tapping vehicle power)</pre>
+
+<div class="warn"><b>Ignore and cap/trim all other pins.</b> Don't let unused leads dangle where they can short.</div>
+
+<h3>1.5 Ground Rule (Read This — Still Important)</h3>
+
+<p>Even though we're not using vehicle 12V, we still need a <b>common ground reference</b> between the Flipper and the vehicle. The CAN transceiver's differential signals are referenced to vehicle ground; the Flipper's SPI is referenced to its own ground. Without a bond between them, the MCP2515's CAN-H/CAN-L readings can float out of the transceiver's valid input range and produce garbage data.</p>
+
+<pre> Flipper Pin 8 ──────┬─────── MCP2515 GND ──────┬───────── OBD Pin 4 or 5
+                     │                           │
+                     └───── one ground net ──────┘</pre>
+
+<p>Three points, one net. That's the rule.</p>
+
+<hr>
+
+<h2>2. Assembly Order</h2>
+
+<ol>
+<li><b>Solder the protoboard headers</b> if not already done — female headers on the side facing away from the Flipper body so F-F jumpers plug in easily</li>
+<li><b>Wire the power pair</b> (#1 Red to VCC, #2 Black to GND)</li>
+<li><b>Wire the SPI bundle</b> (#3-6) — keep these short and bundled together</li>
+<li><b>Wire the CAN pair from the OBD pigtail</b> (#7 CANH, #8 CANL)</li>
+<li><b>Wire the ground bond from OBD to Flipper</b> (#9) — tie into the same black rail as #2</li>
+<li><b>Cap or trim</b> every unused wire on the OBD pigtail</li>
+<li>Enable Flipper 5V: <b>Settings → GPIO → 5V on GPIO Pin → ON</b></li>
+<li>Launch the Electronic Cats MCP2515 app; verify module detection (no vehicle needed for this step — SPI enumeration works without the bus connected)</li>
+</ol>
+
+<hr>
+
+<h2>3. Flipper App</h2>
+
+<p><b>App:</b> Electronic Cats <code>flipper-MCP2515-CANBUS</code></p>
+
+<p><b>Install:</b></p>
+<ol>
+<li>Download the <code>.fap</code> from <a href="https://github.com/ElectronicCats/flipper-MCP2515-CANBUS/releases">https://github.com/ElectronicCats/flipper-MCP2515-CANBUS/releases</a></li>
+<li>Copy to Flipper SD card: <code>/apps/GPIO/mcp2515.fap</code> (use qFlipper or an SD card reader)</li>
+<li>On the Flipper: <b>Apps → GPIO → MCP2515 CAN Bus</b></li>
+<li>First screen should show module detected. If not, go back to section 1 and verify wires #1-6.</li>
+</ol>
+
+<hr>
+
+<h2>4. Troubleshooting</h2>
+
+<table>
+<thead><tr><th>Symptom</th><th>Likely cause</th><th>Fix</th></tr></thead>
+<tbody>
+<tr><td>App says "MCP2515 not detected" on launch</td><td>Flipper 5V not enabled, or swapped SPI pins</td><td>Settings → GPIO → 5V ON; verify wires #1-6 per table</td></tr>
+<tr><td>Module detects but no CAN frames in-vehicle</td><td>Bitrate wrong</td><td>Try 125, 250, 500 kbps</td></tr>
+<tr><td>Random CAN frames that don't match known PIDs</td><td>CANH/CANL swapped</td><td>Swap wires #7 and #8</td></tr>
+<tr><td>Module works on bench but nothing in car</td><td>OBD ground bond missing</td><td>Verify wire #9 — OBD pin 4/5 to Flipper Pin 8 rail</td></tr>
+<tr><td>Flipper reboots when module connects</td><td>Inrush or short on 5V</td><td>Double-check VCC isn't touching GND on MCP2515; try a different 5V jumper</td></tr>
+<tr><td>Flipper 5V pin shows 0V when enabled</td><td>Flipper battery too low</td><td>Charge Flipper</td></tr>
+<tr><td>Module occasionally drops frames at idle</td><td>Noise on long jumpers</td><td>Shorten SPI wires (#3-6); keep them bundled</td></tr>
+</tbody>
+</table>
+
+
+<h2>5. Safety</h2>
+<ul>
+<li><b>Never</b> plug into a moving vehicle's OBD port. Car parked, engine can be on or off.</li>
+<li><b>Never</b> clear DTCs before an emissions inspection.</li>
+<li>Frame injection (writing to the bus) can affect ABS, steering, airbags. For monitoring-only the Electronic Cats app defaults to read-only.</li>
+<li>Flipper GPIO <b>pins 10 and 12</b> are SWD debug (silkscreen <code>SWC</code> / <code>SIO</code>). Do not connect anything to them, ever.</li>
+<li>Always bond OBD ground to Flipper ground (wire #10). A floating ground with a live CAN bus can damage the transceiver.</li>
+</ul>
+
+<hr>
+
+<h2>6. References</h2>
+
+<p>Every load-bearing claim in this guide — vehicle CAN bus speeds, Flipper GPIO pinout, MCP2515 SPI mapping, OBD-II pin functions — traces back to one of these sources.</p>
+
+<h3>Flipper Zero hardware</h3>
+<ul>
+<li>Official GPIO pinout (Pin 1 = 5V, Pin 2 = PA7, Pin 5 = PB3, Pin 8 = GND, etc.): <a href="https://docs.flipper.net/development/hardware/gpio-and-modules">docs.flipper.net/development/hardware/gpio-and-modules</a></li>
+<li>UberGuidoZ GPIO compendium (community-curated wiring reference): <a href="https://github.com/UberGuidoZ/Flipper/blob/main/GPIO/ReadMe.md">github.com/UberGuidoZ/Flipper</a></li>
+<li>Flipper Zero Protoboard product page: <a href="https://shop.flipperzero.one/products/proto-boards-set">shop.flipperzero.one — Proto Boards</a></li>
+</ul>
+
+<h3>Flipper CAN apps</h3>
+<ul>
+<li><b>Electronic Cats <code>flipper-MCP2515-CANBUS</code></b> — the app this guide installs: <a href="https://github.com/ElectronicCats/flipper-MCP2515-CANBUS">github.com/ElectronicCats/flipper-MCP2515-CANBUS</a></li>
+<li>Electronic Cats Hackster walkthrough (alt install reference): <a href="https://www.hackster.io/electronic-cats/integrating-can-bus-capabilities-with-your-flipper-device-20bf3a">hackster.io/electronic-cats/integrating-can-bus</a></li>
+<li>MatthewKuKanich CAN_Commander (the full ESP32-bridged firmware mentioned in section 6): <a href="https://github.com/MatthewKuKanich/CAN_Commander">github.com/MatthewKuKanich/CAN_Commander</a></li>
+</ul>
+
+<h3>MCP2515 / TJA1050 chips</h3>
+<ul>
+<li>Microchip MCP2515 datasheet (SI/SO/CS/SCK/INT pinout, SPI mode 0,0): <a href="https://www.microchip.com/en-us/product/mcp2515">microchip.com/MCP2515</a></li>
+<li>NXP TJA1050 datasheet (CAN transceiver, 5V supply requirement): <a href="https://www.nxp.com/products/interfaces/can-transceivers/can-transceiver:TJA1050">nxp.com/TJA1050</a></li>
+<li>MCP2518FD datasheet (CAN-FD upgrade option for the Tacoma if needed): <a href="https://www.microchip.com/en-us/product/mcp2518fd">microchip.com/MCP2518FD</a></li>
+</ul>
+
+<h3>OBD-II / SAE standards</h3>
+<ul>
+<li>SAE J1962 OBD-II connector spec — confirms Pin 6 = CAN-H, Pin 14 = CAN-L, Pin 16 = +12V battery, Pins 4/5 = ground: <a href="https://www.sae.org/standards/content/j1962_201207/">sae.org — J1962</a></li>
+<li>pinoutguide.com OBD-II references (cross-check by manufacturer): <a href="https://pinoutguide.com/CarElectronics/">pinoutguide.com/CarElectronics</a></li>
+<li>SAE J1979 / OBD-II PID list (PID <code>0x0C</code> = engine RPM, <code>0x0D</code> = speed): <a href="https://en.wikipedia.org/wiki/OBD-II_PIDs">Wikipedia — OBD-II PIDs</a> <i>(informal but accurate; backed by SAE J1979)</i></li>
+</ul>
+
+</ul>
+
+
+<div style="margin-top:28px;background:white;border:1px solid #cbd5e1;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,.06);overflow:hidden;font-family:'Segoe UI',system-ui,-apple-system,Arial,sans-serif;">
+
+  <!-- Coin-color gradient top stripe: instant visual cue this is a crypto donation card -->
+  <div style="height:4px;background:linear-gradient(90deg,#f7931a 0%,#f7931a 33.33%,#627eea 33.33%,#627eea 66.66%,#c2a633 66.66%,#c2a633 100%);"></div>
+
+  <div style="padding:18px 22px 22px 22px;">
+
+    <h2 style="font-size:19px;margin:0 0 10px 0;padding-bottom:5px;border-bottom:2px solid #94a3b8;color:#1e293b;">Source of truth</h2>
+
+    <p style="margin:0 0 14px 0;font-size:14px;color:#475569;line-height:1.55;">
+      AmsaOne &mdash; <a href="https://github.com/AmsaOne" style="color:#1e3a8a;text-decoration:none;border-bottom:1px dashed #1e3a8a;">github.com/AmsaOne</a>
+    </p>
+
+    <p style="margin:0 0 6px 0;font-size:13px;color:#475569;line-height:1.6;max-width:780px;">
+      Never expected &mdash; but if these guides and wiring diagrams have been useful to you, donations are always happily accepted.
+    </p>
+
+    <div style="display:flex;flex-direction:column;gap:8px;margin-top:14px;">
+
+      <div style="display:flex;align-items:center;gap:14px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:10px 14px;">
+        <span style="flex-shrink:0;min-width:62px;text-align:center;font-weight:700;font-size:11.5px;letter-spacing:.5px;background:#f7931a;color:#0f172a;padding:5px 9px;border-radius:4px;">BTC</span>
+        <code style="background:transparent;color:#0f172a;font-family:Consolas,'Courier New',monospace;font-size:13px;padding:0;word-break:break-all;user-select:all;">1FW2 p2qn Bkhg z4yw 6xWg yc4L qE2A 6rQ7 m3</code>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:14px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:10px 14px;">
+        <span style="flex-shrink:0;min-width:62px;text-align:center;font-weight:700;font-size:11.5px;letter-spacing:.5px;background:#627eea;color:#f8fafc;padding:5px 9px;border-radius:4px;">ETH</span>
+        <code style="background:transparent;color:#0f172a;font-family:Consolas,'Courier New',monospace;font-size:13px;padding:0;word-break:break-all;user-select:all;">0x45 e7ff 9f3a b4 7d07 1286 0011 e7 7644 7ca3 e890 68</code>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:14px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:10px 14px;">
+        <span style="flex-shrink:0;min-width:62px;text-align:center;font-weight:700;font-size:11.5px;letter-spacing:.5px;background:#c2a633;color:#0f172a;padding:5px 9px;border-radius:4px;">DOGE</span>
+        <code style="background:transparent;color:#0f172a;font-family:Consolas,'Courier New',monospace;font-size:13px;padding:0;word-break:break-all;user-select:all;">DFeU rquC EuAs XjbQ 43Di zKJE 8gHP DLn1 Hp</code>
+      </div>
+	  
+</div>
+
+</body>
+</html>
