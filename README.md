@@ -4,6 +4,7 @@
 # Flipper-External-Module-Guides-and-Wiring-Diagrams
 A collection of Flipper zero external module DIY guides with Wiring Diagrams. Sources include and this is a work in progress, PLEASE double check all wiring before implementing these modules yourself. Any errors found please email me at AmsaOne@aol.com
 <br>
+<br>
 If It wasnt already obvious, these guides have been created in an HTML format. Please download and open using your preferred browser for clear concise instructions and wiring diagrams. I've broken the wiring diagrams down to be as simple as possible for even the most beginner of DIYers. 
 <br>
 <br>
