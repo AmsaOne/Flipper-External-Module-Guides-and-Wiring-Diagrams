@@ -1,11 +1,13 @@
 <I>License & legal: These guides are released for personal, educational, and lawful security-research use. Authors of upstream firmwares, libraries, and apps retain their respective licenses. RF jamming and unauthorized wireless interference are illegal in most jurisdictions (FCC Part 15 in the US, equivalent statutes elsewhere). Use these builds only against equipment you own or have explicit written authorization to test.</I>
-
+<br>
+<br>
 # Flipper-External-Module-Guides-and-Wiring-Diagrams
 A collection of Flipper zero external module DIY guides with Wiring Diagrams. Sources include and this is a work in progress, PLEASE double check all wiring before implementing these modules yourself. Any errors found please email me at AmsaOne@aol.com
 <br>
 If It wasnt already obvious, these guides have been created in an HTML format. Please download and open using your preferred browser for clear concise instructions and wiring diagrams. I've broken the wiring diagrams down to be as simple as possible for even the most beginner of DIYers. 
 <br>
-<b>Disclaimer</b>
+<br>
+<b>Disclaimer:</b>
 <br>
 Please do not blindly follow my wiring diagrams without double checking all electrical interconnections and components yourself to ensure proper and safe electrical continuity. Electrical circuits of any voltage pose a risk for electrical fires. Always do your own research and due diligence when messing with any kind of electrical circuits. Do not just take anyones word for it when it comes to electrical safety. I am an experienced and licensed Electrician, that does not mean I don't make mistakes some times. This goes for any and all electrical wiring guides from any source.
 <br>
