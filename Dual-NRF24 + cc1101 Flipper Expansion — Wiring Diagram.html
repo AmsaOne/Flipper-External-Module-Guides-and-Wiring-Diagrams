@@ -1,0 +1,1028 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Dual-NRF24 Flipper Expansion — Wiring Diagram</title>
+<style>
+  body { font-family: "Segoe UI", system-ui, -apple-system, Arial, sans-serif; background: #f3f4f6; margin: 0; padding: 24px; color: #111827; }
+  .wrap { max-width: 1820px; margin: 0 auto; }
+  h1 { margin: 0 0 4px 0; font-size: 26px; color: #0f172a; }
+  h2 { font-size: 19px; margin: 28px 0 10px 0; padding-bottom: 5px; border-bottom: 2px solid #94a3b8; color: #1e293b; }
+  p.summary { color: #475569; margin: 0 0 18px 0; max-width: 1200px; line-height: 1.5; }
+  .diagram-frame { background: white; border: 1px solid #cbd5e1; border-radius: 8px; padding: 16px; box-shadow: 0 1px 2px rgba(0,0,0,.05); overflow-x: auto; }
+  svg { display: block; margin: 0 auto; max-width: 100%; height: auto; }
+  table { border-collapse: collapse; width: 100%; background: white; border: 1px solid #cbd5e1; border-radius: 6px; overflow: hidden; font-size: 13px; }
+  th, td { border-bottom: 1px solid #e2e8f0; padding: 7px 10px; text-align: left; vertical-align: top; }
+  th { background: #e0e7ff; font-weight: 600; color: #1e293b; }
+  tr:last-child td { border-bottom: none; }
+  td.mono, th.mono { font-family: Consolas, "Courier New", monospace; font-size: 12px; white-space: nowrap; }
+  .swatch { display: inline-block; width: 28px; height: 6px; border-radius: 3px; vertical-align: middle; margin-right: 6px; }
+  .s-5v { background: #dc2626; }
+  .s-3v3 { background: #f97316; }
+  .s-gnd { background: #111827; }
+  .s-tx { background: #ca8a04; }
+  .s-rx { background: #16a34a; }
+  .s-mosi { background: #2563eb; }
+  .s-miso { background: #0891b2; }
+  .s-sck { background: #4338ca; }
+  .s-cs { background: #be185d; }
+  .s-ce { background: #0d9488; }
+  .s-gdo { background: #92400e; }
+  .s-ir { background: #65a30d; }
+  .note { background: #fef9c3; border-left: 4px solid #eab308; padding: 10px 14px; margin: 12px 0; border-radius: 0 6px 6px 0; font-size: 13px; color: #713f12; }
+  .danger { background: #fee2e2; border-left: 4px solid #dc2626; padding: 10px 14px; margin: 12px 0; border-radius: 0 6px 6px 0; font-size: 13px; color: #7f1d1d; }
+  ol.check { counter-reset: cnt; list-style: none; padding: 0; }
+  ol.check li { counter-increment: cnt; background: white; border: 1px solid #e2e8f0; border-radius: 6px; padding: 8px 12px 8px 40px; margin-bottom: 6px; position: relative; font-size: 13px; }
+  ol.check li::before { content: counter(cnt); position: absolute; left: 10px; top: 8px; background: #3b82f6; color: white; width: 22px; height: 22px; border-radius: 50%; text-align: center; font-weight: 700; font-size: 12px; line-height: 22px; }
+  code { background: #e0e7ff; padding: 1px 5px; border-radius: 3px; font-family: Consolas, "Courier New", monospace; font-size: 12px; }
+  .parts-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 14px; margin-top: 8px; }
+  .parts-card { background: white; border: 1px solid #cbd5e1; border-radius: 8px; padding: 12px 16px; }
+  .parts-card h3 { margin: 0 0 8px 0; font-size: 14px; color: #1e3a8a; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px; }
+  .parts-card ul { list-style: none; padding: 0; margin: 0; }
+  .parts-card li { font-size: 13px; padding: 5px 0 5px 28px; position: relative; color: #0f172a; border-bottom: 1px dashed #f1f5f9; }
+  .parts-card li:last-child { border-bottom: none; }
+  .parts-card li::before { content: "☐"; position: absolute; left: 2px; top: 3px; font-size: 16px; color: #64748b; }
+  .parts-card li .qty { color: #b91c1c; font-weight: 700; font-family: Consolas, monospace; font-size: 12px; }
+  .parts-card li .note { color: #64748b; font-size: 11px; font-style: italic; display: block; padding-top: 1px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>Dual-NRF24 Flipper Expansion — Wiring Diagram</h1>
+<p class="summary">
+  Flipper Zero (Momentum) driving <strong>CC1101</strong> (Sub-GHz) + <strong>NRF24 #1 PA+LNA</strong> (2.4 GHz) + <strong>TSOP38238</strong> (IR RX). A separate <strong>ESP32-S3 Super Mini</strong> powered from the same Flipper 5 V rail hosts a second <strong>NRF24 #2 PA+LNA</strong> on its own SPI bus, driven by the ported <code>W0rthlessS0ul/nRF24_jammer</code> firmware. Two independent radios, two independent LDOs, zero shared-bus contention. All passives below are from the existing BOM — nothing new to buy.
+</p>
+
+<div class="danger"><strong>Operational rule:</strong> at most ONE of the three 2.4 GHz radios (NRF24 #1 TX, NRF24 #2 TX, S3 WiFi TX burst) may transmit at a time. All three at full TX exceeds the Flipper pin-1 5 V budget (~500 mA sustained). Sniff + jam + WiFi-AP-idle is safe. Three-way TX will brown the Flipper.</div>
+
+<div class="danger"><strong>Post-review changes (applied after hardware-wiring-reviewer pass):</strong>
+<ul style="margin:6px 0 0 18px;padding:0;">
+  <li>UART wires <strong>W23/W24 removed</strong> — S3 GPIO3 is a strap pin; Flipper TX driving it at boot is a blocker. Control the S3 via its WiFi AP only.</li>
+  <li><strong>R1, R2 added</strong> — 10 kΩ pull-ups on CC1101 CSN (Pin 4) and NRF24 #1 CSN (Pin 7) to AMS 3.3 V rail (uses your two existing 10 kΩ resistors). Prevents floating-CSN latch-up at power-on.</li>
+  <li><strong>C9 added</strong> — additional 10 µF electrolytic at NRF24 #2 VCC (paired with C8). Brings NRF24 #2 decoupling up to Nordic's recommended ≥10 µF + 1 µF spec. Resolves the original BOM gap. <em>(C2 stays on the 5 V rail — original placement was correct.)</em></li>
+  <li><strong>Rail voltage annotation corrected</strong>: post-Schottky ≈ <strong>4.55 V</strong> under load (not 4.7 V — 1N5819 Vf is 0.35–0.45 V at 200–300 mA). AMS1117 dropout margin ≈ 150 mV — thin but functional.</li>
+</ul>
+</div>
+
+<div class="note"><strong>Remaining residual risk (not BOM-fixable):</strong>
+<ul style="margin:6px 0 0 18px;padding:0;">
+  <li><strong>No hardware interlock against three-way TX overload.</strong> The "one radio TX at a time" rule is enforced only by operator discipline (don't fire Flipper NRF24 TX while the S3 jam is running and S3 has an active WiFi client). A polyfuse or S3-gated load switch on NRF24 #2 VCC would harden this. Monitor for Flipper resets during dual-radio sessions; if it happens, you've hit the limit.</li>
+  <li><strong>AMS1117 margin is tight.</strong> 4.55 V − 1.1 V dropout = 3.45 V min; expected output 3.25–3.35 V. Ribbon sag under TX burst could briefly push AMS into dropout. Keep the ribbon short and re-measure under NRF24 #1 TX during bring-up.</li>
+</ul>
+</div>
+
+<h2>Parts &amp; components to gather</h2>
+<p style="color:#475569;font-size:13px;margin:4px 0 10px 0;">Everything on the bench already. No new purchases.</p>
+<div class="parts-grid">
+
+  <div class="parts-card">
+    <h3>Modules</h3>
+    <ul>
+      <li><strong>Flipper Zero</strong> (Momentum firmware) <span class="qty">× 1</span><span class="note">18-pin GPIO header accessible, battery ≥ 80%</span></li>
+      <li><strong>CC1101</strong> module with SMA <span class="qty">× 1</span><span class="note">Sub-GHz 300-928 MHz, external-module variant</span></li>
+      <li><strong>NRF24L01+PA+LNA</strong> with SMA <span class="qty">× 2</span><span class="note">Radio #1 → Flipper, Radio #2 → S3 Super Mini</span></li>
+      <li><strong>TSOP38238</strong> IR receiver <span class="qty">× 1</span><span class="note">38 kHz demod, 3-pin through-hole</span></li>
+      <li><strong>ESP32-S3 Super Mini</strong> <span class="qty">× 1</span><span class="note">onboard LDO, USB-C for flashing</span></li>
+      <li><strong>AMS1117-3.3</strong> breakout module <span class="qty">× 1</span><span class="note">fixed 3.3 V LDO (NOT ADJ or 5.0)</span></li>
+    </ul>
+  </div>
+
+  <div class="parts-card">
+    <h3>Semiconductors</h3>
+    <ul>
+      <li><strong>1N5819</strong> Schottky (or SS14 / 1N5817) <span class="qty">× 1</span><span class="note">≥ 1 A rating, reverse-polarity protection</span></li>
+    </ul>
+  </div>
+
+  <div class="parts-card">
+    <h3>Capacitors</h3>
+    <ul>
+      <li><strong>100 µF</strong> electrolytic <span class="qty">× 1</span><span class="note">C1 — 5 V rail main bulk</span></li>
+      <li><strong>22 µF</strong> electrolytic <span class="qty">× 1</span><span class="note">C3 — AMS1117 OUT bulk</span></li>
+      <li><strong>10 µF</strong> electrolytic <span class="qty">× 2</span><span class="note">C5 (NRF24 #1 local bulk) + C9 (NRF24 #2 local bulk — added after review)</span></li>
+      <li><strong>1 µF</strong> ceramic <span class="qty">× 1</span><span class="note">C8 — NRF24 #2 HF decoupling</span></li>
+      <li><strong>100 nF</strong> ceramic <span class="qty">× 4</span><span class="note">C2, C4, C6, C7 — HF decoupling at each rail and module</span></li>
+    </ul>
+  </div>
+
+  <div class="parts-card">
+    <h3>Resistors</h3>
+    <ul>
+      <li><strong>10 kΩ</strong> 1/4 W <span class="qty">× 2</span><span class="note">R1 — CC1101 CSN pull-up to AMS 3.3 V rail · R2 — NRF24 #1 CSN pull-up to AMS 3.3 V rail (added after review)</span></li>
+    </ul>
+  </div>
+
+  <div class="parts-card">
+    <h3>Wiring &amp; assembly</h3>
+    <ul>
+      <li><strong>Breadboard</strong> (full-size recommended) <span class="qty">× 1</span></li>
+      <li><strong>Jumper wires</strong> <span class="qty">≥ 30</span><span class="note">colour-matched ideal: red/orange/black for power, plus distinct colours for SPI, CS, CE, GDO0, IR, UART</span></li>
+      <li><strong>Flipper GPIO ribbon / breakout</strong> <span class="qty">× 1</span></li>
+    </ul>
+  </div>
+
+  <div class="parts-card">
+    <h3>Tools</h3>
+    <ul>
+      <li><strong>Multimeter</strong> (continuity + DC V + Ω) <span class="qty">× 1</span></li>
+      <li><strong>USB-C cable</strong> (for flashing the S3 Super Mini) <span class="qty">× 1</span></li>
+    </ul>
+  </div>
+
+</div>
+
+<div class="diagram-frame">
+<svg viewBox="0 0 1800 1850" role="img" aria-labelledby="svgTitle svgDesc" xmlns="http://www.w3.org/2000/svg">
+<title id="svgTitle">Dual-NRF24 Flipper Expansion wiring schematic</title>
+<desc id="svgDesc">Flipper Zero GPIO header wired to CC1101, NRF24 #1, TSOP38238 IR RX on an AMS1117-fed 3.3V rail; ESP32-S3 Super Mini runs off Flipper 5V via its onboard LDO and drives NRF24 #2 on its own SPI bus.</desc>
+<style>
+  .rail          { fill: none; stroke-width: 7; stroke-linecap: round; }
+  .rail-5v       { stroke: #dc2626; }
+  .rail-3v3      { stroke: #f97316; }
+  .rail-s3-3v3   { stroke: #ea580c; stroke-dasharray: 10 4; }
+  .rail-gnd      { stroke: #111827; }
+  .wire          { fill: none; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
+  .w-5v          { stroke: #dc2626; }
+  .w-3v3         { stroke: #f97316; }
+  .w-gnd         { stroke: #111827; }
+  .w-tx          { stroke: #ca8a04; }
+  .w-rx          { stroke: #16a34a; }
+  .w-mosi        { stroke: #2563eb; }
+  .w-miso        { stroke: #0891b2; }
+  .w-sck         { stroke: #4338ca; }
+  .w-cs          { stroke: #be185d; }
+  .w-ce          { stroke: #0d9488; }
+  .w-gdo         { stroke: #92400e; }
+  .w-ir          { stroke: #65a30d; }
+  .module        { fill: #f1f5f9; stroke: #334155; stroke-width: 1.4; }
+  .module-accent { fill: #dbeafe; stroke: #1d4ed8; stroke-width: 1.4; }
+  .module-rf     { fill: #fce7f3; stroke: #9d174d; stroke-width: 1.4; }
+  .module-ir     { fill: #ecfccb; stroke: #4d7c0f; stroke-width: 1.4; }
+  .header-box    { fill: #fef3c7; stroke: #92400e; stroke-width: 2; }
+  .module-title  { font: 700 14px "Segoe UI", system-ui, sans-serif; fill: #0f172a; text-anchor: middle; }
+  .module-sub    { font: 400 10.5px "Segoe UI", system-ui, sans-serif; fill: #475569; text-anchor: middle; }
+  .pin           { fill: #fffbeb; stroke: #78350f; stroke-width: 1; }
+  .pin-power     { fill: #fecaca; stroke: #991b1b; }
+  .pin-gnd       { fill: #d1d5db; stroke: #111827; }
+  .pin-3v3       { fill: #fed7aa; stroke: #9a3412; }
+  .pin-label     { font: 700 10px Consolas, "Courier New", monospace; fill: #1f2937; text-anchor: middle; dominant-baseline: middle; }
+  .pin-func      { font: 400 9px "Segoe UI", system-ui, sans-serif; fill: #6b7280; text-anchor: middle; }
+  .wlabel        { font: 700 11px Consolas, "Courier New", monospace; fill: #0f172a; text-anchor: middle; dominant-baseline: middle; }
+  .wlabel-bg     { fill: white; stroke: #cbd5e1; stroke-width: 0.8; }
+  .comp-val      { font: 600 12px "Segoe UI", system-ui, sans-serif; fill: #0f172a; text-anchor: start; }
+  .comp-ref      { font: 700 14px "Segoe UI", system-ui, sans-serif; fill: #b91c1c; text-anchor: start; }
+  .rail-label    { font: 800 13px "Segoe UI", system-ui, sans-serif; }
+  .section       { font: 700 13px "Segoe UI", system-ui, sans-serif; fill: #475569; letter-spacing: 1px; }
+  .dot           { fill: #111827; }
+  .plate         { stroke: #0f172a; stroke-width: 3; fill: none; }
+  .lead          { stroke: #0f172a; stroke-width: 2.4; fill: none; stroke-linecap: square; }
+  .zone          { stroke-width: 1.4; stroke-dasharray: 8 4; fill-opacity: 0.14; }
+  .zone-ams      { fill: #fed7aa; stroke: #c2410c; }
+  .zone-s3       { fill: #dbeafe; stroke: #1d4ed8; }
+  .zone-title    { font: 800 13px "Segoe UI", system-ui, sans-serif; letter-spacing: 0.5px; }
+  .annotate      { font: 700 12px "Segoe UI", system-ui, sans-serif; fill: #b91c1c; }
+</style>
+
+<!-- ============================================================
+     TITLE
+============================================================ -->
+<text x="900" y="28" text-anchor="middle" font-size="18" font-weight="700" fill="#0f172a">Bench build — Flipper drives CC1101 + NRF24 #1 + IR RX · S3 Super Mini drives NRF24 #2 · all from Flipper 5 V</text>
+
+<!-- ============================================================
+     FLIPPER ZERO GPIO HEADER
+     Only the 14 used pins are shown (of 18 total).
+     Untouched pins 10, 11, 12, 17 are NOT drawn (SWD + iButton).
+============================================================ -->
+<g id="flipper">
+  <rect x="80" y="55" width="1640" height="170" rx="12" class="header-box"/>
+  <text x="900" y="82" text-anchor="middle" font-size="15" font-weight="700" fill="#78350f">Flipper Zero GPIO Header — pins 10/11/12/17 (SWD + iButton) must not be touched</text>
+
+  <!-- Each used pin: x evenly spaced, width 80 -->
+  <!-- Pin 1 (5V) -->
+  <g transform="translate(150,185)">
+    <rect x="-32" y="-22" width="64" height="44" rx="4" class="pin pin-power"/>
+    <text class="pin-label" y="-5">Pin 1</text>
+    <text class="pin-label" y="10" fill="#991b1b">5V</text>
+  </g>
+  <!-- Pin 2 (MOSI) -->
+  <g transform="translate(260,185)">
+    <rect x="-32" y="-22" width="64" height="44" rx="4" class="pin"/>
+    <text class="pin-label" y="-5">Pin 2</text>
+    <text class="pin-func" y="10" fill="#2563eb">MOSI</text>
+  </g>
+  <!-- Pin 3 (MISO) -->
+  <g transform="translate(370,185)">
+    <rect x="-32" y="-22" width="64" height="44" rx="4" class="pin"/>
+    <text class="pin-label" y="-5">Pin 3</text>
+    <text class="pin-func" y="10" fill="#0891b2">MISO</text>
+  </g>
+  <!-- Pin 4 (CC1101 CS) -->
+  <g transform="translate(480,185)">
+    <rect x="-32" y="-22" width="64" height="44" rx="4" class="pin"/>
+    <text class="pin-label" y="-5">Pin 4</text>
+    <text class="pin-func" y="10" fill="#be185d">CC1101 CS</text>
+  </g>
+  <!-- Pin 5 (SCK) -->
+  <g transform="translate(590,185)">
+    <rect x="-32" y="-22" width="64" height="44" rx="4" class="pin"/>
+    <text class="pin-label" y="-5">Pin 5</text>
+    <text class="pin-func" y="10" fill="#4338ca">SCK</text>
+  </g>
+  <!-- Pin 6 (CC1101 GDO0) -->
+  <g transform="translate(700,185)">
+    <rect x="-32" y="-22" width="64" height="44" rx="4" class="pin"/>
+    <text class="pin-label" y="-5">Pin 6</text>
+    <text class="pin-func" y="10" fill="#92400e">GDO0</text>
+  </g>
+  <!-- Pin 7 (NRF24 #1 CSN) -->
+  <g transform="translate(810,185)">
+    <rect x="-32" y="-22" width="64" height="44" rx="4" class="pin"/>
+    <text class="pin-label" y="-5">Pin 7</text>
+    <text class="pin-func" y="10" fill="#be185d">NRF CSN</text>
+  </g>
+  <!-- Pin 8 (GND) -->
+  <g transform="translate(920,185)">
+    <rect x="-32" y="-22" width="64" height="44" rx="4" class="pin pin-gnd"/>
+    <text class="pin-label" y="-5">Pin 8</text>
+    <text class="pin-label" y="10">GND</text>
+  </g>
+  <!-- Pin 9 (3V3) - UNUSED in this design, shown faded -->
+  <g transform="translate(1030,185)" opacity="0.35">
+    <rect x="-32" y="-22" width="64" height="44" rx="4" class="pin pin-3v3"/>
+    <text class="pin-label" y="-5">Pin 9</text>
+    <text class="pin-label" y="10">3V3</text>
+    <text class="pin-func" y="22" fill="#9a3412">(unused)</text>
+  </g>
+  <!-- Pin 13 (UART TX) - UNUSED - removed after review -->
+  <g transform="translate(1140,185)" opacity="0.35">
+    <rect x="-32" y="-22" width="64" height="44" rx="4" class="pin"/>
+    <text class="pin-label" y="-5">Pin 13</text>
+    <text class="pin-func" y="10">(unused)</text>
+  </g>
+  <!-- Pin 14 (UART RX) - UNUSED - removed after review -->
+  <g transform="translate(1250,185)" opacity="0.35">
+    <rect x="-32" y="-22" width="64" height="44" rx="4" class="pin"/>
+    <text class="pin-label" y="-5">Pin 14</text>
+    <text class="pin-func" y="10">(unused)</text>
+  </g>
+  <!-- Pin 15 (IR RX) -->
+  <g transform="translate(1360,185)">
+    <rect x="-32" y="-22" width="64" height="44" rx="4" class="pin"/>
+    <text class="pin-label" y="-5">Pin 15</text>
+    <text class="pin-func" y="10" fill="#65a30d">IR RX</text>
+  </g>
+  <!-- Pin 16 (NRF24 CE) -->
+  <g transform="translate(1470,185)">
+    <rect x="-32" y="-22" width="64" height="44" rx="4" class="pin"/>
+    <text class="pin-label" y="-5">Pin 16</text>
+    <text class="pin-func" y="10" fill="#0d9488">NRF CE</text>
+  </g>
+  <!-- Pin 18 (GND) -->
+  <g transform="translate(1600,185)">
+    <rect x="-32" y="-22" width="64" height="44" rx="4" class="pin pin-gnd"/>
+    <text class="pin-label" y="-5">Pin 18</text>
+    <text class="pin-label" y="10">GND</text>
+  </g>
+</g>
+
+<!-- ============================================================
+     W1 : Flipper Pin 1 -> D1 anode
+============================================================ -->
+<line x1="150" y1="207" x2="150" y2="295" class="wire w-5v"/>
+<g transform="translate(178,245)"><rect x="-13" y="-9" width="26" height="18" rx="3" class="wlabel-bg"/><text class="wlabel">W1</text></g>
+
+<!-- ============================================================
+     D1 SCHOTTKY (1N5819) — SERIES in-line with 5V feed
+============================================================ -->
+<g id="D1">
+  <polygon points="135,295 165,295 150,322" fill="#0f172a" stroke="#0f172a" stroke-width="1"/>
+  <line x1="128" y1="322" x2="172" y2="322" stroke="#0f172a" stroke-width="2.8"/>
+  <path d="M 128,322 L 121,316 L 121,328 L 128,322 Z" fill="none" stroke="#0f172a" stroke-width="2"/>
+  <path d="M 172,322 L 179,316 L 179,328 L 172,322 Z" fill="none" stroke="#0f172a" stroke-width="2"/>
+  <text x="200" y="305" class="comp-ref">D1</text>
+  <text x="200" y="321" class="comp-val">1N5819</text>
+  <text x="200" y="336" font-size="10" fill="#64748b">band faces 5V rail</text>
+</g>
+
+<!-- W1b : D1 cathode -> 5V rail -->
+<line x1="150" y1="322" x2="150" y2="390" class="wire w-5v"/>
+<g transform="translate(178,355)"><rect x="-15" y="-9" width="30" height="18" rx="3" class="wlabel-bg"/><text class="wlabel">W1b</text></g>
+
+<!-- ============================================================
+     5V RAIL (y=390)
+============================================================ -->
+<line x1="90" y1="390" x2="1750" y2="390" class="rail rail-5v"/>
+<text x="90" y="375" class="rail-label" fill="#dc2626">5V RAIL (≈4.55 V after D1 under load — 1N5819 Vf ≈ 0.4 V at 250 mA)</text>
+<circle cx="150" cy="390" r="5" class="dot"/>
+<circle cx="300" cy="390" r="5" class="dot"/>
+<circle cx="380" cy="390" r="5" class="dot"/>
+<circle cx="820" cy="390" r="5" class="dot"/>
+<circle cx="1150" cy="390" r="5" class="dot"/>
+
+<!-- ============================================================
+     C1 (100 µF elec) — 5V rail to GND rail
+============================================================ -->
+<g id="C1">
+  <line x1="300" y1="390" x2="300" y2="416" class="lead"/>
+  <line x1="282" y1="416" x2="318" y2="416" class="plate"/>
+  <text x="267" y="423" font-size="13" font-weight="700" fill="#dc2626">+</text>
+  <path d="M 280,428 Q 300,442 320,428" class="plate"/>
+  <line x1="300" y1="435" x2="300" y2="1620" class="lead"/>
+  <text x="326" y="422" class="comp-ref">C1</text>
+  <text x="326" y="438" class="comp-val">100 µF</text>
+</g>
+
+<!-- ============================================================
+     C2 (100 nF ceramic) — 5V rail to GND rail, HF decoupling
+============================================================ -->
+<g id="C2">
+  <line x1="380" y1="390" x2="380" y2="418" class="lead"/>
+  <line x1="366" y1="418" x2="394" y2="418" class="plate"/>
+  <line x1="366" y1="426" x2="394" y2="426" class="plate"/>
+  <line x1="380" y1="426" x2="380" y2="1620" class="lead"/>
+  <text x="402" y="422" class="comp-ref">C2</text>
+  <text x="402" y="436" class="comp-val">100 nF</text>
+</g>
+
+<!-- ============================================================
+     ZONE A — AMS1117 rail (Flipper-side radios)
+============================================================ -->
+<rect x="60" y="460" width="980" height="720" rx="14" class="zone zone-ams"/>
+<text x="80" y="485" class="zone-title" fill="#9a3412">ZONE A · AMS1117 3.3 V RAIL — serves CC1101 + NRF24 #1 + IR RX</text>
+<text x="80" y="502" font-size="11" fill="#9a3412" font-style="italic">LDO buffer #1: absorbs NRF24 #1 TX current spikes locally so the Flipper's own 3V3 pin never sees them</text>
+
+<!-- ============================================================
+     AMS1117-3.3 MODULE
+============================================================ -->
+<g id="AMS">
+  <rect x="820" y="530" width="180" height="190" rx="10" class="module"/>
+  <text class="module-title" x="910" y="558">AMS1117-3.3</text>
+  <text class="module-sub"   x="910" y="574">5 V → 3.3 V LDO</text>
+
+  <g transform="translate(890,530)"><rect x="-22" y="-2" width="44" height="22" rx="3" class="pin pin-power"/><text class="pin-label" y="12">IN</text></g>
+  <g transform="translate(1000,610)"><rect x="-2" y="-14" width="40" height="28" rx="3" class="pin pin-3v3"/><text class="pin-label" x="18" y="1">OUT</text></g>
+  <g transform="translate(910,720)"><rect x="-22" y="-18" width="44" height="22" rx="3" class="pin pin-gnd"/><text class="pin-label" y="-6">GND</text></g>
+
+  <text x="910" y="660" class="module-sub">1.1 V dropout</text>
+  <text x="910" y="676" class="module-sub">~500 mA max</text>
+</g>
+
+<!-- W2 : 5V rail -> AMS1117 IN -->
+<line x1="890" y1="390" x2="890" y2="530" class="wire w-5v"/>
+<g transform="translate(912,460)"><rect x="-13" y="-9" width="26" height="18" rx="3" class="wlabel-bg"/><text class="wlabel">W2</text></g>
+<circle cx="890" cy="390" r="5" class="dot"/>
+
+<!-- W3 : AMS1117 OUT -> 3.3V rail -->
+<path d="M 1040,610 L 1060,610 L 1060,830" class="wire w-3v3"/>
+<g transform="translate(1080,720)"><rect x="-13" y="-9" width="26" height="18" rx="3" class="wlabel-bg"/><text class="wlabel">W3</text></g>
+
+<!-- W4 : AMS1117 GND -> GND rail -->
+<line x1="910" y1="720" x2="910" y2="1620" class="wire w-gnd"/>
+<g transform="translate(932,1200)"><rect x="-13" y="-9" width="26" height="18" rx="3" class="wlabel-bg"/><text class="wlabel">W4</text></g>
+
+<!-- ============================================================
+     AMS1117 3.3V RAIL (y=830)
+============================================================ -->
+<line x1="80" y1="830" x2="1020" y2="830" class="rail rail-3v3"/>
+<text x="80" y="815" class="rail-label" fill="#f97316">AMS1117 3.3V RAIL</text>
+<circle cx="120" cy="830" r="5" class="dot"/>
+<circle cx="200" cy="830" r="5" class="dot"/>
+<circle cx="340" cy="830" r="5" class="dot"/>
+<circle cx="430" cy="830" r="5" class="dot"/>
+<circle cx="620" cy="830" r="5" class="dot"/>
+<circle cx="760" cy="830" r="5" class="dot"/>
+<circle cx="1060" cy="830" r="5" class="dot"/>
+
+<!-- C3 (22 µF) : AMS1117 OUT rail -> GND -->
+<g id="C3">
+  <line x1="120" y1="830" x2="120" y2="860" class="lead"/>
+  <line x1="102" y1="860" x2="138" y2="860" class="plate"/>
+  <text x="87" y="866" font-size="13" font-weight="700" fill="#dc2626">+</text>
+  <path d="M 100,872 Q 120,886 140,872" class="plate"/>
+  <line x1="120" y1="879" x2="120" y2="1620" class="lead"/>
+  <text x="144" y="866" class="comp-ref">C3</text>
+  <text x="144" y="880" class="comp-val">22 µF</text>
+</g>
+
+<!-- C4 (100 nF) : AMS1117 OUT rail -> GND -->
+<g id="C4">
+  <line x1="200" y1="830" x2="200" y2="860" class="lead"/>
+  <line x1="186" y1="860" x2="214" y2="860" class="plate"/>
+  <line x1="186" y1="868" x2="214" y2="868" class="plate"/>
+  <line x1="200" y1="868" x2="200" y2="1620" class="lead"/>
+  <text x="222" y="864" class="comp-ref">C4</text>
+  <text x="222" y="878" class="comp-val">100 nF</text>
+</g>
+
+<!-- ============================================================
+     CC1101 MODULE
+============================================================ -->
+<g id="CC1101">
+  <rect x="80" y="920" width="220" height="200" rx="10" class="module-rf"/>
+  <text class="module-title" x="190" y="946">CC1101</text>
+  <text class="module-sub"   x="190" y="962">Sub-GHz 300-928 MHz</text>
+
+  <!-- VCC (top) -->
+  <g transform="translate(120,920)"><rect x="-20" y="-2" width="40" height="20" rx="3" class="pin pin-3v3"/><text class="pin-label" y="10">VCC</text></g>
+  <!-- GND (bottom) -->
+  <g transform="translate(120,1120)"><rect x="-20" y="-18" width="40" height="20" rx="3" class="pin pin-gnd"/><text class="pin-label" y="-6">GND</text></g>
+  <!-- Right-side signals -->
+  <g transform="translate(300,960)"><rect x="-2" y="-12" width="36" height="24" rx="3" class="pin"/><text class="pin-label" x="16" y="1">MOSI</text></g>
+  <g transform="translate(300,1000)"><rect x="-2" y="-12" width="36" height="24" rx="3" class="pin"/><text class="pin-label" x="16" y="1">MISO</text></g>
+  <g transform="translate(300,1040)"><rect x="-2" y="-12" width="36" height="24" rx="3" class="pin"/><text class="pin-label" x="16" y="1">SCK</text></g>
+  <g transform="translate(300,1080)"><rect x="-2" y="-12" width="36" height="24" rx="3" class="pin"/><text class="pin-label" x="16" y="1">CSN</text></g>
+  <!-- GDO0 on left -->
+  <g transform="translate(80,1080)"><rect x="-38" y="-12" width="40" height="24" rx="3" class="pin"/><text class="pin-label" x="-18" y="1">GDO0</text></g>
+</g>
+
+<!-- W5 : AMS 3.3V rail -> CC1101 VCC -->
+<line x1="120" y1="830" x2="120" y2="920" class="wire w-3v3"/>
+<g transform="translate(144,870)"><rect x="-13" y="-9" width="26" height="18" rx="3" class="wlabel-bg"/><text class="wlabel">W5</text></g>
+
+<!-- C7 (100 nF) — CC1101 VCC local HF decoupling -->
+<g id="C7">
+  <line x1="160" y1="880" x2="160" y2="898" class="lead"/>
+  <line x1="146" y1="898" x2="174" y2="898" class="plate"/>
+  <line x1="146" y1="906" x2="174" y2="906" class="plate"/>
+  <line x1="160" y1="906" x2="160" y2="1620" class="lead"/>
+  <text x="182" y="902" class="comp-ref">C7</text>
+  <text x="182" y="915" class="comp-val">100 nF</text>
+  <line x1="120" y1="880" x2="160" y2="880" class="lead"/>
+</g>
+
+<!-- W18 : CC1101 GND -> GND rail -->
+<line x1="120" y1="1140" x2="120" y2="1620" class="wire w-gnd"/>
+<g transform="translate(102,1400)"><rect x="-15" y="-9" width="30" height="18" rx="3" class="wlabel-bg"/><text class="wlabel">W18</text></g>
+
+<!-- ============================================================
+     NRF24 #1 MODULE (PA+LNA)
+============================================================ -->
+<g id="NRF1">
+  <rect x="380" y="920" width="220" height="200" rx="10" class="module-rf"/>
+  <text class="module-title" x="490" y="946">NRF24 #1 PA+LNA</text>
+  <text class="module-sub"   x="490" y="962">2.4 GHz · Momentum Extra 7</text>
+
+  <!-- VCC (top) -->
+  <g transform="translate(420,920)"><rect x="-20" y="-2" width="40" height="20" rx="3" class="pin pin-3v3"/><text class="pin-label" y="10">VCC</text></g>
+  <!-- GND (bottom) -->
+  <g transform="translate(420,1120)"><rect x="-20" y="-18" width="40" height="20" rx="3" class="pin pin-gnd"/><text class="pin-label" y="-6">GND</text></g>
+  <!-- Right-side signals -->
+  <g transform="translate(600,960)"><rect x="-2" y="-12" width="36" height="24" rx="3" class="pin"/><text class="pin-label" x="16" y="1">MOSI</text></g>
+  <g transform="translate(600,1000)"><rect x="-2" y="-12" width="36" height="24" rx="3" class="pin"/><text class="pin-label" x="16" y="1">MISO</text></g>
+  <g transform="translate(600,1040)"><rect x="-2" y="-12" width="36" height="24" rx="3" class="pin"/><text class="pin-label" x="16" y="1">SCK</text></g>
+  <g transform="translate(600,1080)"><rect x="-2" y="-12" width="36" height="24" rx="3" class="pin"/><text class="pin-label" x="16" y="1">CSN</text></g>
+  <!-- CE on left -->
+  <g transform="translate(380,1080)"><rect x="-38" y="-12" width="40" height="24" rx="3" class="pin"/><text class="pin-label" x="-18" y="1">CE</text></g>
+</g>
+
+<!-- W6 : AMS 3.3V rail -> NRF24 #1 VCC -->
+<line x1="430" y1="830" x2="430" y2="920" class="wire w-3v3"/>
+<g transform="translate(454,870)"><rect x="-13" y="-9" width="26" height="18" rx="3" class="wlabel-bg"/><text class="wlabel">W6</text></g>
+
+<!-- C5 (10 µF elec) — NRF24 #1 VCC local bulk -->
+<g id="C5">
+  <line x1="470" y1="880" x2="470" y2="900" class="lead"/>
+  <line x1="452" y1="900" x2="488" y2="900" class="plate"/>
+  <text x="437" y="907" font-size="12" font-weight="700" fill="#dc2626">+</text>
+  <path d="M 450,912 Q 470,924 490,912" class="plate"/>
+  <line x1="470" y1="919" x2="470" y2="1620" class="lead"/>
+  <text x="494" y="906" class="comp-ref">C5</text>
+  <text x="494" y="919" class="comp-val">10 µF</text>
+  <line x1="430" y1="880" x2="470" y2="880" class="lead"/>
+</g>
+<!-- C6 (100 nF) — NRF24 #1 VCC HF decoupling -->
+<g id="C6">
+  <line x1="540" y1="880" x2="540" y2="898" class="lead"/>
+  <line x1="526" y1="898" x2="554" y2="898" class="plate"/>
+  <line x1="526" y1="906" x2="554" y2="906" class="plate"/>
+  <line x1="540" y1="906" x2="540" y2="1620" class="lead"/>
+  <text x="558" y="902" class="comp-ref">C6</text>
+  <text x="558" y="915" class="comp-val">100 nF</text>
+  <line x1="470" y1="880" x2="540" y2="880" class="lead"/>
+</g>
+
+<!-- W19 : NRF24 #1 GND -> GND rail -->
+<line x1="420" y1="1140" x2="420" y2="1620" class="wire w-gnd"/>
+<g transform="translate(402,1400)"><rect x="-15" y="-9" width="30" height="18" rx="3" class="wlabel-bg"/><text class="wlabel">W19</text></g>
+
+<!-- ============================================================
+     TSOP38238 IR RECEIVER (3-pin)
+============================================================ -->
+<g id="TSOP">
+  <rect x="660" y="920" width="150" height="200" rx="10" class="module-ir"/>
+  <text class="module-title" x="735" y="946">TSOP38238</text>
+  <text class="module-sub"   x="735" y="962">38 kHz IR RX</text>
+
+  <!-- 3 pins stacked on left side -->
+  <g transform="translate(660,1000)"><rect x="-38" y="-12" width="40" height="24" rx="3" class="pin"/><text class="pin-label" x="-18" y="1">OUT</text></g>
+  <g transform="translate(660,1040)"><rect x="-38" y="-12" width="40" height="24" rx="3" class="pin pin-gnd"/><text class="pin-label" x="-18" y="1">GND</text></g>
+  <g transform="translate(660,1080)"><rect x="-38" y="-12" width="40" height="24" rx="3" class="pin pin-3v3"/><text class="pin-label" x="-18" y="1">VCC</text></g>
+</g>
+
+<!-- W7 : AMS 3.3V rail -> TSOP VCC -->
+<path d="M 620,830 L 620,1080" class="wire w-3v3"/>
+<g transform="translate(596,938)"><rect x="-13" y="-9" width="26" height="18" rx="3" class="wlabel-bg"/><text class="wlabel">W7</text></g>
+
+<!-- W20 : TSOP GND -> GND rail -->
+<path d="M 622,1040 L 640,1040 L 640,1620" class="wire w-gnd"/>
+<g transform="translate(660,1400)"><rect x="-15" y="-9" width="30" height="18" rx="3" class="wlabel-bg"/><text class="wlabel">W20</text></g>
+
+<!-- W17 : Flipper Pin 15 -> TSOP OUT  -->
+<path d="M 1360,207 L 1360,260 L 760,260 L 760,1000 L 622,1000" class="wire w-ir"/>
+<g transform="translate(1055,247)"><rect x="-15" y="-9" width="30" height="18" rx="3" class="wlabel-bg"/><text class="wlabel">W17</text></g>
+
+<!-- ============================================================
+     Flipper SPI bus to CC1101 + NRF24 #1
+     Routed through a "bus highway" at y=700
+============================================================ -->
+
+<!-- W8 : Pin 2 MOSI -> bus MOSI -> CC1101 MOSI -> NRF24 #1 MOSI -->
+<path d="M 260,207 L 260,700 L 336,700 L 336,960 L 298,960" class="wire w-mosi"/>
+<path d="M 336,960 L 336,700 L 636,700 L 636,960 L 598,960" class="wire w-mosi"/>
+<circle cx="336" cy="700" r="4.5" class="dot"/>
+<g transform="translate(285,688)"><rect x="-15" y="-9" width="30" height="18" rx="3" class="wlabel-bg"/><text class="wlabel">W8</text></g>
+<g transform="translate(478,688)"><rect x="-15" y="-9" width="30" height="18" rx="3" class="wlabel-bg"/><text class="wlabel">W8b</text></g>
+
+<!-- W9 : Pin 3 MISO -> bus MISO -> CC1101 MISO -> NRF24 #1 MISO -->
+<path d="M 370,207 L 370,680 L 348,680 L 348,1000 L 298,1000" class="wire w-miso"/>
+<path d="M 348,1000 L 348,680 L 650,680 L 650,1000 L 598,1000" class="wire w-miso"/>
+<circle cx="348" cy="680" r="4.5" class="dot"/>
+<g transform="translate(395,668)"><rect x="-15" y="-9" width="30" height="18" rx="3" class="wlabel-bg"/><text class="wlabel">W9</text></g>
+<g transform="translate(492,668)"><rect x="-15" y="-9" width="30" height="18" rx="3" class="wlabel-bg"/><text class="wlabel">W9b</text></g>
+
+<!-- W10 : Pin 5 SCK -> bus SCK -> CC1101 SCK -> NRF24 #1 SCK -->
+<path d="M 590,207 L 590,660 L 362,660 L 362,1040 L 298,1040" class="wire w-sck"/>
+<path d="M 362,1040 L 362,660 L 664,660 L 664,1040 L 598,1040" class="wire w-sck"/>
+<circle cx="362" cy="660" r="4.5" class="dot"/>
+<g transform="translate(520,648)"><rect x="-15" y="-9" width="30" height="18" rx="3" class="wlabel-bg"/><text class="wlabel">W10</text></g>
+<g transform="translate(506,648)"><rect x="-15" y="-9" width="30" height="18" rx="3" class="wlabel-bg"/><text class="wlabel">W10b</text></g>
+
+<!-- W11 : Pin 4 -> CC1101 CSN  -->
+<path d="M 480,207 L 480,640 L 330,640 L 330,1080 L 298,1080" class="wire w-cs"/>
+<g transform="translate(420,628)"><rect x="-15" y="-9" width="30" height="18" rx="3" class="wlabel-bg"/><text class="wlabel">W11</text></g>
+
+<!-- W12 : Pin 6 -> CC1101 GDO0 (LEFT side of CC1101) -->
+<path d="M 700,207 L 700,620 L 55,620 L 55,1080 L 42,1080" class="wire w-gdo"/>
+<g transform="translate(670,608)"><rect x="-15" y="-9" width="30" height="18" rx="3" class="wlabel-bg"/><text class="wlabel">W12</text></g>
+
+<!-- W13 : Pin 7 -> NRF24 #1 CSN -->
+<path d="M 810,207 L 810,600 L 638,600 L 638,1080 L 598,1080" class="wire w-cs"/>
+<g transform="translate(745,588)"><rect x="-15" y="-9" width="30" height="18" rx="3" class="wlabel-bg"/><text class="wlabel">W13</text></g>
+
+<!-- W14 : Pin 16 -> NRF24 #1 CE (LEFT side of NRF24 #1) -->
+<path d="M 1470,207 L 1470,580 L 360,580 L 360,1080 L 342,1080" class="wire w-ce"/>
+<g transform="translate(1050,568)"><rect x="-15" y="-9" width="30" height="18" rx="3" class="wlabel-bg"/><text class="wlabel">W14</text></g>
+
+<!-- ============================================================
+     Flipper GND pins 8 and 18 -> GND rail
+============================================================ -->
+<!-- W15 : Pin 8 -> GND rail (direct drop through everything, routed around) -->
+<path d="M 920,207 L 920,270 L 1030,270 L 1030,1620" class="wire w-gnd"/>
+<g transform="translate(952,258)"><rect x="-15" y="-9" width="30" height="18" rx="3" class="wlabel-bg"/><text class="wlabel">W15</text></g>
+<circle cx="1030" cy="1620" r="5" class="dot"/>
+
+<!-- W16 : Pin 18 -> GND rail -->
+<path d="M 1600,207 L 1600,1620" class="wire w-gnd"/>
+<g transform="translate(1622,1400)"><rect x="-15" y="-9" width="30" height="18" rx="3" class="wlabel-bg"/><text class="wlabel">W16</text></g>
+
+<!-- ============================================================
+     ZONE B — ESP32-S3 Super Mini + NRF24 #2 (S3 onboard LDO)
+============================================================ -->
+<rect x="1080" y="460" width="680" height="720" rx="14" class="zone zone-s3"/>
+<text x="1100" y="485" class="zone-title" fill="#1e40af">ZONE B · ESP32-S3 ONBOARD LDO — serves NRF24 #2</text>
+<text x="1100" y="502" font-size="11" fill="#1e40af" font-style="italic">LDO buffer #2: S3 Super Mini's own 5V→3.3V LDO absorbs NRF24 #2 TX current spikes</text>
+
+<!-- ============================================================
+     ESP32-S3 SUPER MINI
+============================================================ -->
+<g id="S3">
+  <rect x="1100" y="530" width="320" height="380" rx="10" class="module-accent"/>
+  <text class="module-title" x="1260" y="558">ESP32-S3 Super Mini</text>
+  <text class="module-sub"   x="1260" y="574">nRF24_jammer FW · AP: jammer</text>
+  <text class="module-sub"   x="1260" y="590">control via http://192.168.4.1</text>
+
+  <!-- Left-side pins -->
+  <g transform="translate(1100,620)"><rect x="-36" y="-12" width="38" height="24" rx="3" class="pin pin-power"/><text class="pin-label" x="-17" y="1">5V</text></g>
+  <g transform="translate(1100,660)"><rect x="-36" y="-12" width="38" height="24" rx="3" class="pin pin-gnd"/><text class="pin-label" x="-17" y="1">GND</text></g>
+  <g transform="translate(1100,700)"><rect x="-36" y="-12" width="38" height="24" rx="3" class="pin pin-3v3"/><text class="pin-label" x="-17" y="1">3V3</text></g>
+  <g transform="translate(1100,740)"><rect x="-36" y="-12" width="38" height="24" rx="3" class="pin"/><text class="pin-label" x="-17" y="1">IO3 RX</text></g>
+  <g transform="translate(1100,780)"><rect x="-36" y="-12" width="38" height="24" rx="3" class="pin"/><text class="pin-label" x="-17" y="1">IO1 TX</text></g>
+
+  <!-- Right-side pins (NRF24 #2 SPI) -->
+  <g transform="translate(1420,620)"><rect x="-2" y="-12" width="42" height="24" rx="3" class="pin"/><text class="pin-label" x="19" y="1">IO9 CE</text></g>
+  <g transform="translate(1420,660)"><rect x="-2" y="-12" width="42" height="24" rx="3" class="pin"/><text class="pin-label" x="19" y="1">IO10 CS</text></g>
+  <g transform="translate(1420,700)"><rect x="-2" y="-12" width="42" height="24" rx="3" class="pin"/><text class="pin-label" x="19" y="1">IO11 MOSI</text></g>
+  <g transform="translate(1420,740)"><rect x="-2" y="-12" width="42" height="24" rx="3" class="pin"/><text class="pin-label" x="19" y="1">IO12 SCK</text></g>
+  <g transform="translate(1420,780)"><rect x="-2" y="-12" width="42" height="24" rx="3" class="pin"/><text class="pin-label" x="19" y="1">IO13 MISO</text></g>
+
+  <rect x="1245" y="860" width="30" height="14" rx="2" fill="#475569"/>
+  <text x="1260" y="893" class="module-sub">USB-C (flash + optional power)</text>
+</g>
+
+<!-- W21 : 5V rail -> S3 5V pin -->
+<path d="M 1150,390 L 1150,460 L 1064,460 L 1064,620" class="wire w-5v"/>
+<g transform="translate(1095,580)"><rect x="-15" y="-9" width="30" height="18" rx="3" class="wlabel-bg"/><text class="wlabel">W21</text></g>
+
+<!-- W22 : S3 GND pin -> GND rail -->
+<path d="M 1064,660 L 1064,1620" class="wire w-gnd"/>
+<g transform="translate(1080,1100)"><rect x="-15" y="-9" width="30" height="18" rx="3" class="wlabel-bg"/><text class="wlabel">W22</text></g>
+<circle cx="1064" cy="1620" r="5" class="dot"/>
+
+<!-- ============================================================
+     S3 LOCAL 3V3 TRACE — SEPARATE net from AMS1117 rail!
+     Runs from S3's 3V3 pin to NRF24 #2 VCC.
+============================================================ -->
+<path d="M 1064,700 L 1040,700 L 1040,940 L 1620,940 L 1620,960" class="rail rail-s3-3v3"/>
+<text x="1045" y="924" font-size="11" font-style="italic" font-weight="700" fill="#ea580c">S3 LOCAL 3V3 (separate net — do NOT tie to AMS1117 rail)</text>
+<circle cx="1040" cy="940" r="4.5" class="dot"/>
+<circle cx="1560" cy="940" r="4.5" class="dot"/>
+<circle cx="1620" cy="940" r="4.5" class="dot"/>
+
+<!-- UART to S3 REMOVED after hardware review.
+     GPIO3 on S3 Super Mini is a boot strap pin; Flipper TX driving it at boot
+     can lock the S3 into the wrong boot mode. S3 control is via WiFi AP only. -->
+
+<!-- Annotation showing pins 13/14 are unused -->
+<g transform="translate(1100,410)">
+  <rect x="0" y="0" width="540" height="40" rx="4" fill="#fee2e2" stroke="#dc2626" stroke-width="1.2"/>
+  <text x="10" y="16" font-size="11" fill="#7f1d1d"><tspan font-weight="700">Flipper Pins 13/14 UART:</tspan> NOT WIRED to the S3.</text>
+  <text x="10" y="32" font-size="10" fill="#7f1d1d">S3 GPIO3 is a boot strap — wiring Flipper TX to it can brick S3 boot. Use WiFi AP for S3 control.</text>
+</g>
+
+<!-- ============================================================
+     NRF24 #2 MODULE (PA+LNA)
+============================================================ -->
+<g id="NRF2">
+  <rect x="1500" y="960" width="240" height="200" rx="10" class="module-rf"/>
+  <text class="module-title" x="1620" y="986">NRF24 #2 PA+LNA</text>
+  <text class="module-sub"   x="1620" y="1002">2.4 GHz · driven by S3</text>
+
+  <!-- VCC (top) -->
+  <g transform="translate(1560,960)"><rect x="-20" y="-2" width="40" height="20" rx="3" class="pin pin-3v3"/><text class="pin-label" y="10">VCC</text></g>
+  <!-- GND (bottom) -->
+  <g transform="translate(1560,1160)"><rect x="-20" y="-18" width="40" height="20" rx="3" class="pin pin-gnd"/><text class="pin-label" y="-6">GND</text></g>
+  <!-- Left-side signals (facing S3) -->
+  <g transform="translate(1500,1000)"><rect x="-38" y="-12" width="40" height="24" rx="3" class="pin"/><text class="pin-label" x="-18" y="1">CE</text></g>
+  <g transform="translate(1500,1040)"><rect x="-38" y="-12" width="40" height="24" rx="3" class="pin"/><text class="pin-label" x="-18" y="1">CSN</text></g>
+  <g transform="translate(1500,1080)"><rect x="-38" y="-12" width="40" height="24" rx="3" class="pin"/><text class="pin-label" x="-18" y="1">MOSI</text></g>
+  <g transform="translate(1500,1120)"><rect x="-38" y="-12" width="40" height="24" rx="3" class="pin"/><text class="pin-label" x="-18" y="1">MISO</text></g>
+  <g transform="translate(1740,1040)"><rect x="-2" y="-12" width="36" height="24" rx="3" class="pin"/><text class="pin-label" x="16" y="1">SCK</text></g>
+</g>
+
+<!-- C8 (1 µF ceramic) — NRF24 #2 VCC HF decoupling -->
+<g id="C8">
+  <line x1="1680" y1="930" x2="1680" y2="948" class="lead"/>
+  <line x1="1666" y1="948" x2="1694" y2="948" class="plate"/>
+  <line x1="1666" y1="956" x2="1694" y2="956" class="plate"/>
+  <line x1="1680" y1="956" x2="1680" y2="1620" class="lead"/>
+  <text x="1700" y="952" class="comp-ref">C8</text>
+  <text x="1700" y="966" class="comp-val">1 µF</text>
+  <line x1="1620" y1="930" x2="1680" y2="930" class="lead"/>
+  <circle cx="1620" cy="930" r="4.5" class="dot"/>
+</g>
+
+<!-- C9 (10 µF electrolytic) — NRF24 #2 VCC local BULK (added after review) -->
+<g id="C9">
+  <line x1="1560" y1="930" x2="1560" y2="950" class="lead"/>
+  <line x1="1542" y1="950" x2="1578" y2="950" class="plate"/>
+  <text x="1527" y="956" font-size="12" font-weight="700" fill="#dc2626">+</text>
+  <path d="M 1540,962 Q 1560,974 1580,962" class="plate"/>
+  <line x1="1560" y1="969" x2="1560" y2="1620" class="lead"/>
+  <text x="1525" y="956" class="comp-ref" text-anchor="end">C9</text>
+  <text x="1525" y="970" class="comp-val" text-anchor="end">10 µF</text>
+  <text x="1525" y="984" font-size="10" fill="#65a30d" text-anchor="end">★ added (NRF #2 bulk)</text>
+  <line x1="1500" y1="930" x2="1560" y2="930" class="lead"/>
+</g>
+
+<!-- ============================================================
+     R1 — 10 kΩ pull-up on CC1101 CSN trace (W11 at x=330, y=720)
+     Prevents floating CSN at boot before Flipper firmware drives it.
+============================================================ -->
+<g id="R1-pullup">
+  <line x1="330" y1="720" x2="278" y2="720" class="lead"/>
+  <rect x="254" y="720" width="24" height="60" rx="3" fill="#fde68a" stroke="#0f172a" stroke-width="1.6"/>
+  <line x1="266" y1="780" x2="266" y2="830" class="lead"/>
+  <text x="248" y="745" class="comp-ref" text-anchor="end">R1</text>
+  <text x="248" y="759" class="comp-val" text-anchor="end">10 kΩ</text>
+  <text x="248" y="773" font-size="9" fill="#64748b" text-anchor="end">CC1101 CSN</text>
+  <text x="248" y="784" font-size="9" fill="#64748b" text-anchor="end">pull-up</text>
+</g>
+<circle cx="330" cy="720" r="4.5" class="dot"/>
+<circle cx="266" cy="830" r="4.5" class="dot"/>
+
+<!-- ============================================================
+     R2 — 10 kΩ pull-up on NRF24 #1 CSN trace (W13 at x=638, y=720)
+     Prevents floating CSN at boot before Flipper firmware drives it.
+============================================================ -->
+<g id="R2-pullup">
+  <line x1="638" y1="720" x2="700" y2="720" class="lead"/>
+  <rect x="688" y="720" width="24" height="60" rx="3" fill="#fde68a" stroke="#0f172a" stroke-width="1.6"/>
+  <line x1="700" y1="780" x2="700" y2="830" class="lead"/>
+  <text x="738" y="745" class="comp-ref">R2</text>
+  <text x="738" y="759" class="comp-val">10 kΩ</text>
+  <text x="738" y="773" font-size="9" fill="#64748b">NRF24 #1 CSN</text>
+  <text x="738" y="784" font-size="9" fill="#64748b">pull-up</text>
+</g>
+<circle cx="638" cy="720" r="4.5" class="dot"/>
+<circle cx="700" cy="830" r="4.5" class="dot"/>
+
+<!-- Wiring S3 to NRF24 #2 -->
+<!-- W25 : S3 IO9 (CE) -> NRF24 #2 CE -->
+<path d="M 1462,620 L 1478,620 L 1478,1000 L 1462,1000" class="wire w-ce"/>
+<g transform="translate(1495,810)"><rect x="-15" y="-9" width="30" height="18" rx="3" class="wlabel-bg"/><text class="wlabel">W25</text></g>
+
+<!-- W26 : S3 IO10 (CS) -> NRF24 #2 CSN -->
+<path d="M 1462,660 L 1486,660 L 1486,1040 L 1462,1040" class="wire w-cs"/>
+<g transform="translate(1505,850)"><rect x="-15" y="-9" width="30" height="18" rx="3" class="wlabel-bg"/><text class="wlabel">W26</text></g>
+
+<!-- W27 : S3 IO11 (MOSI) -> NRF24 #2 MOSI -->
+<path d="M 1462,700 L 1494,700 L 1494,1080 L 1462,1080" class="wire w-mosi"/>
+<g transform="translate(1513,890)"><rect x="-15" y="-9" width="30" height="18" rx="3" class="wlabel-bg"/><text class="wlabel">W27</text></g>
+
+<!-- W28 : S3 IO12 (SCK) -> NRF24 #2 SCK (via bottom-right loop to the right-side SCK pin) -->
+<path d="M 1462,740 L 1770,740 L 1770,1040 L 1776,1040" class="wire w-sck"/>
+<g transform="translate(1510,728)"><rect x="-15" y="-9" width="30" height="18" rx="3" class="wlabel-bg"/><text class="wlabel">W28</text></g>
+
+<!-- W29 : S3 IO13 (MISO) -> NRF24 #2 MISO -->
+<path d="M 1462,780 L 1490,780 L 1490,1120 L 1462,1120" class="wire w-miso"/>
+<g transform="translate(1517,930)"><rect x="-15" y="-9" width="30" height="18" rx="3" class="wlabel-bg"/><text class="wlabel">W29</text></g>
+
+<!-- W30 : NRF24 #2 VCC fed from S3 local 3V3 trace (already drawn as dashed rail) -->
+<g transform="translate(1585,950)"><rect x="-15" y="-9" width="30" height="18" rx="3" class="wlabel-bg"/><text class="wlabel">W30</text></g>
+
+<!-- W31 : NRF24 #2 GND -> GND rail -->
+<line x1="1560" y1="1180" x2="1560" y2="1620" class="wire w-gnd"/>
+<g transform="translate(1540,1400)"><rect x="-15" y="-9" width="30" height="18" rx="3" class="wlabel-bg"/><text class="wlabel">W31</text></g>
+
+<!-- ============================================================
+     GND RAIL (y=1620)
+============================================================ -->
+<line x1="80" y1="1620" x2="1750" y2="1620" class="rail rail-gnd"/>
+<text x="80" y="1650" class="rail-label">GND RAIL — COMMON RETURN (every module, cap, and Flipper GND ties here)</text>
+<text x="80" y="1668" font-size="11" fill="#475569" font-style="italic">If using a two-strip breadboard: add a jumper between the two (−) strips to unify the net.</text>
+<circle cx="300" cy="1620" r="5" class="dot"/>
+<circle cx="380" cy="1620" r="5" class="dot"/>
+<circle cx="120" cy="1620" r="5" class="dot"/>
+<circle cx="200" cy="1620" r="5" class="dot"/>
+<circle cx="160" cy="1620" r="5" class="dot"/>
+<circle cx="470" cy="1620" r="5" class="dot"/>
+<circle cx="540" cy="1620" r="5" class="dot"/>
+<circle cx="640" cy="1620" r="5" class="dot"/>
+<circle cx="910" cy="1620" r="5" class="dot"/>
+<circle cx="1680" cy="1620" r="5" class="dot"/>
+
+<!-- ============================================================
+     LEGEND
+============================================================ -->
+<g transform="translate(80, 1710)">
+  <text x="0" y="0" class="section">COLOR KEY</text>
+  <g transform="translate(0,22)"><rect x="0" y="0" width="28" height="6" fill="#dc2626"/><text x="38" y="6" font-size="12" fill="#0f172a">5 V (red)</text></g>
+  <g transform="translate(0,42)"><rect x="0" y="0" width="28" height="6" fill="#f97316"/><text x="38" y="6" font-size="12" fill="#0f172a">AMS 3.3 V (orange)</text></g>
+  <g transform="translate(0,62)"><rect x="0" y="0" width="28" height="6" fill="#ea580c" stroke="#ea580c" stroke-dasharray="4 2"/><text x="38" y="6" font-size="12" fill="#0f172a">S3 local 3V3 (dashed)</text></g>
+  <g transform="translate(0,82)"><rect x="0" y="0" width="28" height="6" fill="#111827"/><text x="38" y="6" font-size="12" fill="#0f172a">GND (black)</text></g>
+  <g transform="translate(200,22)"><rect x="0" y="0" width="28" height="6" fill="#2563eb"/><text x="38" y="6" font-size="12" fill="#0f172a">MOSI (blue)</text></g>
+  <g transform="translate(200,42)"><rect x="0" y="0" width="28" height="6" fill="#0891b2"/><text x="38" y="6" font-size="12" fill="#0f172a">MISO (cyan)</text></g>
+  <g transform="translate(200,62)"><rect x="0" y="0" width="28" height="6" fill="#4338ca"/><text x="38" y="6" font-size="12" fill="#0f172a">SCK (indigo)</text></g>
+  <g transform="translate(200,82)"><rect x="0" y="0" width="28" height="6" fill="#be185d"/><text x="38" y="6" font-size="12" fill="#0f172a">CS / CSN (magenta)</text></g>
+  <g transform="translate(400,22)"><rect x="0" y="0" width="28" height="6" fill="#0d9488"/><text x="38" y="6" font-size="12" fill="#0f172a">CE (teal)</text></g>
+  <g transform="translate(400,42)"><rect x="0" y="0" width="28" height="6" fill="#92400e"/><text x="38" y="6" font-size="12" fill="#0f172a">GDO0 (brown)</text></g>
+  <g transform="translate(400,62)"><rect x="0" y="0" width="28" height="6" fill="#65a30d"/><text x="38" y="6" font-size="12" fill="#0f172a">IR RX (lime)</text></g>
+  <g transform="translate(400,82)"><rect x="0" y="0" width="28" height="6" fill="#ca8a04"/><text x="38" y="6" font-size="12" fill="#0f172a">UART TX (yellow)</text></g>
+  <g transform="translate(600,22)"><rect x="0" y="0" width="28" height="6" fill="#16a34a"/><text x="38" y="6" font-size="12" fill="#0f172a">UART RX (green)</text></g>
+  <g transform="translate(600,42)"><circle cx="14" cy="3" r="4" fill="#111827"/><text x="38" y="6" font-size="12" fill="#0f172a">= electrical junction</text></g>
+  <g transform="translate(600,62)"><text x="0" y="6" font-size="12" fill="#64748b">crossing without a dot = not connected</text></g>
+</g>
+
+<!-- Control model box -->
+<g transform="translate(900, 1700)">
+  <rect x="0" y="0" width="820" height="120" rx="8" fill="#eff6ff" stroke="#1d4ed8" stroke-width="1.2"/>
+  <text x="14" y="20" class="section" fill="#1e3a8a">CONTROL CHANNELS &amp; OPERATIONAL RULE</text>
+  <text x="14" y="42" font-size="12" fill="#0f172a">Flipper drives NRF24 #1 over shared SPI (Momentum "Extra 7" preset) + CC1101 + IR RX.</text>
+  <text x="14" y="60" font-size="12" fill="#0f172a">Phone/laptop → ESP32-S3 WiFi AP <code>jammer</code> → http://192.168.4.1 → NRF24 #2 jam modes.</text>
+  <text x="14" y="82" font-size="11" fill="#7f1d1d" font-weight="700">⚠ Never TX on NRF24 #1 + NRF24 #2 + S3 WiFi simultaneously — exceeds Flipper 5 V budget.</text>
+  <text x="14" y="100" font-size="11" fill="#475569">Sniff + jam + WiFi-AP-idle is safe (~260 mA). Enable Flipper pin 1 5 V in the GPIO menu before use.</text>
+</g>
+
+</svg>
+</div>
+
+<h2>Complete wire reference (29 connections after review — W23/W24 removed)</h2>
+<table>
+<thead>
+<tr><th class="mono">#</th><th>From</th><th>To</th><th>Color</th><th>Purpose</th></tr>
+</thead>
+<tbody>
+<tr><td class="mono">W1</td><td>Flipper Pin 1 (5V)</td><td>D1 anode</td><td><span class="swatch s-5v"></span>red</td><td>5 V feed into Schottky</td></tr>
+<tr><td class="mono">W1b</td><td>D1 cathode</td><td>5V rail</td><td><span class="swatch s-5v"></span>red</td><td>Post-diode 5 V (≈4.7 V)</td></tr>
+<tr><td class="mono">W2</td><td>5V rail</td><td>AMS1117 IN</td><td><span class="swatch s-5v"></span>red</td><td>Feeds LDO for Flipper-side 3.3 V rail</td></tr>
+<tr><td class="mono">W3</td><td>AMS1117 OUT</td><td>AMS 3.3V rail</td><td><span class="swatch s-3v3"></span>orange</td><td>Regulated 3.3 V onto rail</td></tr>
+<tr><td class="mono">W4</td><td>AMS1117 GND</td><td>GND rail</td><td><span class="swatch s-gnd"></span>black</td><td>AMS1117 return</td></tr>
+<tr><td class="mono">W5</td><td>AMS 3.3V rail</td><td>CC1101 VCC</td><td><span class="swatch s-3v3"></span>orange</td><td>CC1101 power</td></tr>
+<tr><td class="mono">W6</td><td>AMS 3.3V rail</td><td>NRF24 #1 VCC</td><td><span class="swatch s-3v3"></span>orange</td><td>NRF24 #1 power</td></tr>
+<tr><td class="mono">W7</td><td>AMS 3.3V rail</td><td>TSOP38238 VCC</td><td><span class="swatch s-3v3"></span>orange</td><td>IR receiver power</td></tr>
+<tr><td class="mono">W8 / W8b</td><td>Flipper Pin 2 (MOSI)</td><td>CC1101 MOSI + NRF24 #1 MOSI</td><td><span class="swatch s-mosi"></span>blue</td><td>Shared SPI MOSI (Flipper-side bus)</td></tr>
+<tr><td class="mono">W9 / W9b</td><td>Flipper Pin 3 (MISO)</td><td>CC1101 MISO + NRF24 #1 MISO</td><td><span class="swatch s-miso"></span>cyan</td><td>Shared SPI MISO</td></tr>
+<tr><td class="mono">W10 / W10b</td><td>Flipper Pin 5 (SCK)</td><td>CC1101 SCK + NRF24 #1 SCK</td><td><span class="swatch s-sck"></span>indigo</td><td>Shared SPI SCK</td></tr>
+<tr><td class="mono">W11</td><td>Flipper Pin 4</td><td>CC1101 CSN</td><td><span class="swatch s-cs"></span>magenta</td><td>CC1101 chip select</td></tr>
+<tr><td class="mono">W12</td><td>Flipper Pin 6</td><td>CC1101 GDO0</td><td><span class="swatch s-gdo"></span>brown</td><td>CC1101 GDO0 interrupt</td></tr>
+<tr><td class="mono">W13</td><td>Flipper Pin 7</td><td>NRF24 #1 CSN</td><td><span class="swatch s-cs"></span>magenta</td><td>NRF24 #1 chip select (Extra 7 preset)</td></tr>
+<tr><td class="mono">W14</td><td>Flipper Pin 16</td><td>NRF24 #1 CE</td><td><span class="swatch s-ce"></span>teal</td><td>NRF24 #1 chip enable</td></tr>
+<tr><td class="mono">W15</td><td>Flipper Pin 8 (GND)</td><td>GND rail</td><td><span class="swatch s-gnd"></span>black</td><td>Primary Flipper ground</td></tr>
+<tr><td class="mono">W16</td><td>Flipper Pin 18 (GND)</td><td>GND rail</td><td><span class="swatch s-gnd"></span>black</td><td>Secondary Flipper ground</td></tr>
+<tr><td class="mono">W17</td><td>Flipper Pin 15</td><td>TSOP38238 OUT</td><td><span class="swatch s-ir"></span>lime</td><td>IR demodulated signal back to Flipper</td></tr>
+<tr><td class="mono">W18</td><td>CC1101 GND</td><td>GND rail</td><td><span class="swatch s-gnd"></span>black</td><td>CC1101 return</td></tr>
+<tr><td class="mono">W19</td><td>NRF24 #1 GND</td><td>GND rail</td><td><span class="swatch s-gnd"></span>black</td><td>NRF24 #1 return</td></tr>
+<tr><td class="mono">W20</td><td>TSOP38238 GND</td><td>GND rail</td><td><span class="swatch s-gnd"></span>black</td><td>IR receiver return</td></tr>
+<tr><td class="mono">W21</td><td>5V rail</td><td>S3 Super Mini 5V pin</td><td><span class="swatch s-5v"></span>red</td><td>Powers S3 through its onboard LDO</td></tr>
+<tr><td class="mono">W22</td><td>S3 GND pin</td><td>GND rail</td><td><span class="swatch s-gnd"></span>black</td><td>S3 return</td></tr>
+<tr style="background:#fee2e2;color:#7f1d1d;text-decoration:line-through;"><td class="mono">W23</td><td>Flipper Pin 13 (TX)</td><td>S3 IO3 (RX)</td><td>—</td><td>REMOVED — GPIO3 is a strap pin, would corrupt S3 boot</td></tr>
+<tr style="background:#fee2e2;color:#7f1d1d;text-decoration:line-through;"><td class="mono">W24</td><td>Flipper Pin 14 (RX)</td><td>S3 IO1 (TX)</td><td>—</td><td>REMOVED — paired with W23</td></tr>
+<tr><td class="mono">W25</td><td>S3 IO9</td><td>NRF24 #2 CE</td><td><span class="swatch s-ce"></span>teal</td><td>NRF24 #2 chip enable</td></tr>
+<tr><td class="mono">W26</td><td>S3 IO10</td><td>NRF24 #2 CSN</td><td><span class="swatch s-cs"></span>magenta</td><td>NRF24 #2 chip select</td></tr>
+<tr><td class="mono">W27</td><td>S3 IO11</td><td>NRF24 #2 MOSI</td><td><span class="swatch s-mosi"></span>blue</td><td>NRF24 #2 MOSI</td></tr>
+<tr><td class="mono">W28</td><td>S3 IO12</td><td>NRF24 #2 SCK</td><td><span class="swatch s-sck"></span>indigo</td><td>NRF24 #2 SCK</td></tr>
+<tr><td class="mono">W29</td><td>S3 IO13</td><td>NRF24 #2 MISO</td><td><span class="swatch s-miso"></span>cyan</td><td>NRF24 #2 MISO</td></tr>
+<tr><td class="mono">W30</td><td>S3 3V3 pin</td><td>NRF24 #2 VCC</td><td style="color:#ea580c;font-weight:700">S3 3V3 (dashed)</td><td>S3 local LDO powers NRF24 #2 (separate net from AMS rail)</td></tr>
+<tr><td class="mono">W31</td><td>NRF24 #2 GND</td><td>GND rail</td><td><span class="swatch s-gnd"></span>black</td><td>NRF24 #2 return</td></tr>
+</tbody>
+</table>
+
+<h2>Component reference</h2>
+<table>
+<thead>
+<tr><th class="mono">Ref</th><th>Value</th><th>Type</th><th>Placement</th><th>Purpose</th></tr>
+</thead>
+<tbody>
+<tr><td class="mono">D1</td><td>1N5819</td><td>Schottky diode</td><td>In series with W1 (band → 5V rail)</td><td>Reverse-polarity protection (~0.3 V drop)</td></tr>
+<tr><td class="mono">C1</td><td>100 µF</td><td>Electrolytic</td><td>5V rail ↔ GND, near W1b entry</td><td>Main bulk; absorbs ribbon L + S3 WiFi TX peaks</td></tr>
+<tr><td class="mono">C2</td><td>100 nF</td><td>Ceramic MLCC</td><td>5V rail ↔ GND, paired with C1</td><td>HF decoupling on the 5 V rail</td></tr>
+<tr><td class="mono">C3</td><td>22 µF</td><td>Electrolytic</td><td>AMS 3.3V rail ↔ GND</td><td>AMS1117 output stability + bulk for NRF24 #1 bursts</td></tr>
+<tr><td class="mono">C4</td><td>100 nF</td><td>Ceramic MLCC</td><td>AMS 3.3V rail ↔ GND, paired with C3</td><td>HF decoupling on the AMS 3.3 V rail</td></tr>
+<tr><td class="mono">C5</td><td>10 µF</td><td>Electrolytic</td><td>NRF24 #1 VCC ↔ GND</td><td>Local bulk at NRF24 #1 (critical for TX bursts)</td></tr>
+<tr><td class="mono">C6</td><td>100 nF</td><td>Ceramic MLCC</td><td>NRF24 #1 VCC ↔ GND, at module</td><td>HF decoupling at NRF24 #1</td></tr>
+<tr><td class="mono">C7</td><td>100 nF</td><td>Ceramic MLCC</td><td>CC1101 VCC ↔ GND, at module</td><td>Standard CC1101 decoupling</td></tr>
+<tr><td class="mono">C8</td><td>1 µF</td><td>Ceramic MLCC</td><td>NRF24 #2 VCC ↔ GND, at module</td><td>NRF24 #2 HF decoupling</td></tr>
+<tr style="background:#ecfccb;"><td class="mono">C9</td><td>10 µF</td><td>Electrolytic</td><td>NRF24 #2 VCC ↔ GND, at module</td><td>★ Added after review — local bulk for NRF24 #2 TX bursts (Nordic spec)</td></tr>
+<tr style="background:#ecfccb;"><td class="mono">R1</td><td>10 kΩ</td><td>1/4 W resistor</td><td>CC1101 CSN trace ↔ AMS 3.3 V rail</td><td>★ Added after review — pull-up against floating CSN at boot</td></tr>
+<tr style="background:#ecfccb;"><td class="mono">R2</td><td>10 kΩ</td><td>1/4 W resistor</td><td>NRF24 #1 CSN trace ↔ AMS 3.3 V rail</td><td>★ Added after review — pull-up against floating CSN at boot</td></tr>
+</tbody>
+</table>
+
+<h2>Pre-power-on checklist (do BEFORE enabling Flipper 5 V)</h2>
+<ol class="check">
+<li>Count all wires against the W1–W31 table above. Any extra wire → remove and re-check.</li>
+<li>Verify D1 orientation: banded end (cathode) faces the 5 V rail; unbanded end (anode) faces Flipper Pin 1.</li>
+<li>Electrolytic polarity: stripe/short leg of C1, C3, C5 points at GND. A reversed electrolytic can vent.</li>
+<li>DMM continuity check (power off): 5 V rail ↔ GND rail = open. AMS 3.3 V rail ↔ GND rail = open. S3 3V3 pin ↔ GND = open.</li>
+<li>DMM continuity: NRF24 #1 CSN (pin 7) NOT shorted to CC1101 CSN (pin 4). Critical — shared-bus integrity depends on CS isolation.</li>
+<li>DMM continuity: no NRF24 VCC (either #1 or #2) accidentally on the 5 V rail. NRF24 is 3.3 V STRICT; 5 V will destroy it.</li>
+<li>Verify AMS1117 module is the 3.3 V fixed variant (not 5.0 or ADJ).</li>
+<li>Flipper Pin 1 5 V is OFF by default — leave it off until all checks pass.</li>
+<li>S3 Super Mini: USB-C detached for first power-on (prevents dual-feed contention between USB and Flipper 5 V).</li>
+<li>Flipper battery ≥ 80 %. Low battery + 2.4 GHz TX = brownout risk.</li>
+<li>Confirm Momentum setting: Settings → Protocols → GPIO Pins → <strong>NRF24 SPI → Extra 7</strong>. Save.</li>
+</ol>
+
+<h2>Bring-up sequence (power-on verification, in order)</h2>
+<ol class="check">
+<li>Flipper only (S3 not powered yet, Pin 1 5 V <em>on</em>): measure post-Schottky rail = 4.70–4.85 V. AMS 3.3 V rail = 3.25–3.35 V. If anything sags, stop and debug.</li>
+<li>Launch Flipper IR app → learn a TV remote → confirms TSOP38238 + pin 15 wiring.</li>
+<li>Launch Flipper Sub-GHz → Radio Settings → Module: External → scan 433 MHz → CC1101 works.</li>
+<li>Launch NRF24 Sniffer FAP → confirm Momentum detects the NRF24 #1 radio → sniff a known dongle.</li>
+<li>Disable Pin 1 5 V. Connect S3 via USB-C only. Confirm <code>jammer</code> AP appears. Browse http://192.168.4.1.</li>
+<li>Trigger a short S3 jam burst on an unused channel → verify on any 2.4 GHz scanner.</li>
+<li>Disconnect S3 USB. Re-enable Pin 1 5 V. S3 should now boot from Flipper power; AP should re-appear. Post-LDO S3 3V3 pin measures 3.25–3.35 V.</li>
+<li>Dual-radio test: Flipper NRF24 Sniffer running on channel X; on S3 web UI, launch jam on channel Y (≠ X). Flipper sniff must continue without SPI corruption, Flipper must not reset, S3 must not brown out.</li>
+<li>Soak: run above dual-radio config for 10 minutes. Feel AMS1117 body — warm is OK, untouchable means overloaded.</li>
+</ol>
+
+<div class="note"><strong>Firmware note:</strong> the S3 side is the ported <code>W0rthlessS0ul/nRF24_jammer</code>. GPIO remap required (SCK=12, MOSI=11, MISO=13, CS=10, CE=9). PlatformIO env: <code>esp32-s3-devkitc-1</code>. Build with <code>python -m platformio run -e esp32-s3-super-mini</code> on Windows (not <code>pio</code> — avoids the self-replace lock).</div>
+
+<h2>Resources &amp; Acknowledgments</h2>
+<p style="color:#475569;font-size:13px;margin:4px 0 14px 0;">This build was compiled from the work of many open-source authors and community resources. Thanks to all of them.</p>
+
+<div class="parts-grid">
+
+  <div class="parts-card">
+    <h3>Flipper firmware</h3>
+    <ul>
+      <li><strong>Momentum Firmware</strong> (Next-Flip)<span class="note"><a href="https://momentum-fw.dev/">momentum-fw.dev</a> · <a href="https://github.com/Next-Flip/Momentum-Firmware">github.com/Next-Flip/Momentum-Firmware</a></span></li>
+      <li><strong>Unleashed Firmware</strong> (DarkFlippers)<span class="note"><a href="https://github.com/DarkFlippers/unleashed-firmware">github.com/DarkFlippers/unleashed-firmware</a></span></li>
+      <li><strong>RogueMaster Firmware</strong><span class="note"><a href="https://github.com/RogueMaster/flipperzero-firmware-wPlugins">github.com/RogueMaster/flipperzero-firmware-wPlugins</a> — NRF24 pinout reference</span></li>
+    </ul>
+  </div>
+
+  <div class="parts-card">
+    <h3>Flipper NRF24 / MouseJack apps</h3>
+    <ul>
+      <li><strong>flipperzero-nrf24</strong> · NRF24 Sniffer + MouseJacker by mothball187<span class="note"><a href="https://github.com/mothball187/flipperzero-nrf24">github.com/mothball187/flipperzero-nrf24</a></span></li>
+      <li><strong>nrf24tool</strong> by OuinOuin74<span class="note"><a href="https://github.com/OuinOuin74/nrf24tool">github.com/OuinOuin74/nrf24tool</a></span></li>
+      <li><strong>nrf24scan</strong> by vad7<span class="note"><a href="https://github.com/vad7/nrf24scan">github.com/vad7/nrf24scan</a></span></li>
+      <li><strong>flipperzero-mousejacking-nrf24</strong> by FroggMaster<span class="note"><a href="https://github.com/FroggMaster/flipperzero-mousejacking-nrf24">github.com/FroggMaster/flipperzero-mousejacking-nrf24</a></span></li>
+      <li><strong>FlipperZeroNRFJammer</strong> by huuck<span class="note"><a href="https://github.com/huuck/FlipperZeroNRFJammer">github.com/huuck/FlipperZeroNRFJammer</a></span></li>
+    </ul>
+  </div>
+
+  <div class="parts-card">
+    <h3>ESP32 firmware</h3>
+    <ul>
+      <li><strong>★ nRF24_jammer</strong> by W0rthlessS0ul · <em>used as S3 firmware</em><span class="note"><a href="https://github.com/W0rthlessS0ul/nRF24_jammer">github.com/W0rthlessS0ul/nRF24_jammer</a></span></li>
+      <li><strong>Ghost ESP</strong> by Spooks4576 · investigated, doesn't support NRF24<span class="note"><a href="https://github.com/Spooks4576/Ghost_ESP">github.com/Spooks4576/Ghost_ESP</a> · <a href="https://docs.ghostesp.net/latest/">docs</a></span></li>
+      <li><strong>Ghost ESP companion</strong> by jaylikesbunda<span class="note"><a href="https://github.com/jaylikesbunda/ghost_esp_app">github.com/jaylikesbunda/ghost_esp_app</a></span></li>
+      <li><strong>RF-Clown</strong> by cifertech · alternative jammer<span class="note"><a href="https://github.com/cifertech/RF-Clown">github.com/cifertech/RF-Clown</a></span></li>
+      <li><strong>cypher-jammer</strong> by dkyazzentwatwa<span class="note"><a href="https://github.com/dkyazzentwatwa/cypher-jammer">github.com/dkyazzentwatwa/cypher-jammer</a></span></li>
+      <li><strong>Marauder</strong> by justcallmekoko<span class="note"><a href="https://github.com/justcallmekoko/ESP32Marauder">github.com/justcallmekoko/ESP32Marauder</a></span></li>
+    </ul>
+  </div>
+
+  <div class="parts-card">
+    <h3>Libraries</h3>
+    <ul>
+      <li><strong>RF24</strong> Arduino library (TMRh20)<span class="note"><a href="https://github.com/nRF24/RF24">github.com/nRF24/RF24</a> — de facto NRF24 driver for Arduino/ESP32</span></li>
+    </ul>
+  </div>
+
+  <div class="parts-card">
+    <h3>Datasheets &amp; specs</h3>
+    <ul>
+      <li><strong>Nordic nRF24L01+ datasheet</strong><span class="note"><a href="https://infocenter.nordicsemi.com/pdf/nRF24L01P_PS_v1.0.pdf">infocenter.nordicsemi.com</a> — VDD decoupling, CSN behavior</span></li>
+      <li><strong>Espressif ESP32-S3 TRM</strong><span class="note"><a href="https://www.espressif.com/sites/default/files/documentation/esp32-s3_technical_reference_manual_en.pdf">espressif.com</a> — strapping pins (GPIO0/3/45/46)</span></li>
+      <li><strong>1N5819 Schottky</strong><span class="note">Vf vs If curve (multiple vendor datasheets)</span></li>
+      <li><strong>AMS1117 LDO</strong><span class="note">Output cap stability requirement (Advanced Monolithic Systems)</span></li>
+    </ul>
+  </div>
+
+  <div class="parts-card">
+    <h3>Hardware references</h3>
+    <ul>
+      <li><strong>Pingequa 2-in-1 NRF24 + CC1101</strong><span class="note"><a href="https://www.pingequa.com/products/flipper-zero-nrf24-cc1101-2-in-1-rf-devboard">pingequa.com</a> — Momentum "Extra 7" preset reference</span></li>
+      <li><strong>VoyagerRF Pro</strong> by Kashmir54<span class="note"><a href="https://kashmir54.github.io/flipper/voyagerrf_pro/">kashmir54.github.io</a></span></li>
+      <li><strong>FlipMods Ultra V3 / Combo</strong><span class="note"><a href="https://www.tindie.com/products/flipmods/ultra-v3-esp32nrf24cc1101-3in1-for-flipper-zero/">tindie.com</a></span></li>
+      <li><strong>Rek5 Lab QUAD board</strong><span class="note"><a href="https://rek5lab.com/products/flipper-zero-quad-board">rek5lab.com</a></span></li>
+    </ul>
+  </div>
+
+  <div class="parts-card">
+    <h3>Security research</h3>
+    <ul>
+      <li><strong>Bastille MouseJack</strong> (Marc Newlin et al.)<span class="note">Original NRF24 wireless keyboard/mouse vulnerability disclosure that motivates these tools</span></li>
+      <li><strong>LOGITacker</strong> by RoganDawes<span class="note"><a href="https://github.com/RoganDawes/LOGITacker">github.com/RoganDawes/LOGITacker</a> — Logitech Unifying NRF24 attack platform</span></li>
+    </ul>
+  </div>
+
+  <div class="parts-card">
+    <h3>Community &amp; tools</h3>
+    <ul>
+      <li><strong>Flipper Zero forum</strong><span class="note"><a href="https://forum.flipper.net/">forum.flipper.net</a> — community NRF24 / CC1101 / expansion troubleshooting</span></li>
+      <li><strong>The Flipper Zero community</strong><span class="note">For sharing extensive practical knowledge that is otherwise undocumented</span></li>
+      <li><strong>hardware-wiring-reviewer</strong><span class="note">Caught 3 blockers and 6 warnings in the first draft of this design — current design is post-review</span></li>
+      <li><strong>Claude Code</strong> by Anthropic<span class="note">Used to compile this guide, run research, and generate this wiring diagram</span></li>
+    </ul>
+  </div>
+
+</div>
+
+<div class="note" style="margin-top:18px;"><strong>License &amp; legal:</strong> This guide is released for personal, educational, and lawful security-research use. Authors of upstream firmwares, libraries, and apps retain their respective licenses. RF jamming and unauthorized wireless interference are illegal in most jurisdictions (FCC Part 15 in the US, equivalent statutes elsewhere). Use this build only against equipment you own or have explicit written authorization to test.</div>
+
+<div style="margin-top:28px;background:white;border:1px solid #cbd5e1;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,.06);overflow:hidden;font-family:'Segoe UI',system-ui,-apple-system,Arial,sans-serif;">
+
+  <!-- Coin-color gradient top stripe: instant visual cue this is a crypto donation card -->
+  <div style="height:4px;background:linear-gradient(90deg,#f7931a 0%,#f7931a 33.33%,#627eea 33.33%,#627eea 66.66%,#c2a633 66.66%,#c2a633 100%);"></div>
+
+  <div style="padding:18px 22px 22px 22px;">
+
+    <h2 style="font-size:19px;margin:0 0 10px 0;padding-bottom:5px;border-bottom:2px solid #94a3b8;color:#1e293b;">Source of truth</h2>
+
+    <p style="margin:0 0 14px 0;font-size:14px;color:#475569;line-height:1.55;">
+      AmsaOne &mdash; <a href="https://github.com/AmsaOne" style="color:#1e3a8a;text-decoration:none;border-bottom:1px dashed #1e3a8a;">github.com/AmsaOne</a>
+    </p>
+
+    <p style="margin:0 0 6px 0;font-size:13px;color:#475569;line-height:1.6;max-width:780px;">
+      Never expected &mdash; but if these guides and wiring diagrams have been useful to you, donations are always happily accepted.
+    </p>
+
+    <div style="display:flex;flex-direction:column;gap:8px;margin-top:14px;">
+
+      <div style="display:flex;align-items:center;gap:14px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:10px 14px;">
+        <span style="flex-shrink:0;min-width:62px;text-align:center;font-weight:700;font-size:11.5px;letter-spacing:.5px;background:#f7931a;color:#0f172a;padding:5px 9px;border-radius:4px;">BTC</span>
+        <code style="background:transparent;color:#0f172a;font-family:Consolas,'Courier New',monospace;font-size:13px;padding:0;word-break:break-all;user-select:all;">1FW2 p2qn Bkhg z4yw 6xWg yc4L qE2A 6rQ7 m3</code>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:14px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:10px 14px;">
+        <span style="flex-shrink:0;min-width:62px;text-align:center;font-weight:700;font-size:11.5px;letter-spacing:.5px;background:#627eea;color:#f8fafc;padding:5px 9px;border-radius:4px;">ETH</span>
+        <code style="background:transparent;color:#0f172a;font-family:Consolas,'Courier New',monospace;font-size:13px;padding:0;word-break:break-all;user-select:all;">0x45 e7ff 9f3a b4 7d07 1286 0011 e7 7644 7ca3 e890 68</code>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:14px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:10px 14px;">
+        <span style="flex-shrink:0;min-width:62px;text-align:center;font-weight:700;font-size:11.5px;letter-spacing:.5px;background:#c2a633;color:#0f172a;padding:5px 9px;border-radius:4px;">DOGE</span>
+        <code style="background:transparent;color:#0f172a;font-family:Consolas,'Courier New',monospace;font-size:13px;padding:0;word-break:break-all;user-select:all;">DFeU rquC EuAs XjbQ 43Di zKJE 8gHP DLn1 Hp</code>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+</div>
+</body>
+</html>
