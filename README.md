@@ -1,4 +1,4 @@
-<I>License & legal: This guide is released for personal, educational, and lawful security-research use. Authors of upstream firmwares, libraries, and apps retain their respective licenses. RF jamming and unauthorized wireless interference are illegal in most jurisdictions (FCC Part 15 in the US, equivalent statutes elsewhere). Use this build only against equipment you own or have explicit written authorization to test.</I>
+<I>License & legal: These guides are released for personal, educational, and lawful security-research use. Authors of upstream firmwares, libraries, and apps retain their respective licenses. RF jamming and unauthorized wireless interference are illegal in most jurisdictions (FCC Part 15 in the US, equivalent statutes elsewhere). Use these builds only against equipment you own or have explicit written authorization to test.</I>
 
 # Flipper-External-Module-Guides-and-Wiring-Diagrams
 A collection of Flipper zero external module DIY guides with Wiring Diagrams. Sources include and this is a work in progress, PLEASE double check all wiring before implementing these modules yourself. Any errors found please email me at AmsaOne@aol.com
