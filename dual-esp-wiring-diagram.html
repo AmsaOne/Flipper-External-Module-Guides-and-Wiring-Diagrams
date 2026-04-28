@@ -1,0 +1,1178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Dual-ESP Flipper Expansion — Wiring Diagram</title>
+<style>
+  body { font-family: "Segoe UI", system-ui, -apple-system, Arial, sans-serif; background: #f3f4f6; margin: 0; padding: 24px; color: #111827; }
+  .wrap { max-width: 1820px; margin: 0 auto; }
+  h1 { margin: 0 0 4px 0; font-size: 26px; color: #0f172a; }
+  h2 { font-size: 19px; margin: 28px 0 10px 0; padding-bottom: 5px; border-bottom: 2px solid #94a3b8; color: #1e293b; }
+  p.summary { color: #475569; margin: 0 0 18px 0; max-width: 1200px; line-height: 1.5; }
+  .diagram-frame { background: white; border: 1px solid #cbd5e1; border-radius: 8px; padding: 16px; box-shadow: 0 1px 2px rgba(0,0,0,.05); overflow-x: auto; }
+  svg { display: block; margin: 0 auto; max-width: 100%; height: auto; }
+  table { border-collapse: collapse; width: 100%; background: white; border: 1px solid #cbd5e1; border-radius: 6px; overflow: hidden; font-size: 13px; }
+  th, td { border-bottom: 1px solid #e2e8f0; padding: 7px 10px; text-align: left; vertical-align: top; }
+  th { background: #e0e7ff; font-weight: 600; color: #1e293b; }
+  tr:last-child td { border-bottom: none; }
+  td.mono, th.mono { font-family: Consolas, "Courier New", monospace; font-size: 12px; white-space: nowrap; }
+  .swatch { display: inline-block; width: 28px; height: 6px; border-radius: 3px; vertical-align: middle; margin-right: 6px; }
+  .s-5v { background: #dc2626; }
+  .s-3v3 { background: #f97316; }
+  .s-gnd { background: #111827; }
+  .s-tx { background: #ca8a04; }
+  .s-rx { background: #16a34a; }
+  .s-en { background: #64748b; }
+  .s-io0 { background: #a855f7; }
+  .s-spi-mosi { background: #2563eb; }
+  .s-spi-miso { background: #d946ef; }
+  .s-spi-sck { background: #0891b2; }
+  .s-spi-cs { background: #be123c; }
+  .note { background: #fef9c3; border-left: 4px solid #eab308; padding: 10px 14px; margin: 12px 0; border-radius: 0 6px 6px 0; font-size: 13px; color: #713f12; }
+  ol.check { counter-reset: cnt; list-style: none; padding: 0; }
+  ol.check li { counter-increment: cnt; background: white; border: 1px solid #e2e8f0; border-radius: 6px; padding: 8px 12px 8px 40px; margin-bottom: 6px; position: relative; font-size: 13px; }
+  ol.check li::before { content: counter(cnt); position: absolute; left: 10px; top: 8px; background: #3b82f6; color: white; width: 22px; height: 22px; border-radius: 50%; text-align: center; font-weight: 700; font-size: 12px; line-height: 22px; }
+  code { background: #e0e7ff; padding: 1px 5px; border-radius: 3px; font-family: Consolas, "Courier New", monospace; font-size: 12px; }
+  .parts-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 14px; margin-top: 8px; }
+  .parts-card { background: white; border: 1px solid #cbd5e1; border-radius: 8px; padding: 12px 16px; }
+  .parts-card h3 { margin: 0 0 8px 0; font-size: 14px; color: #1e3a8a; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px; }
+  .parts-card ul { list-style: none; padding: 0; margin: 0; }
+  .parts-card li { font-size: 13px; padding: 5px 0 5px 28px; position: relative; color: #0f172a; border-bottom: 1px dashed #f1f5f9; }
+  .parts-card li:last-child { border-bottom: none; }
+  .parts-card li::before { content: "☐"; position: absolute; left: 2px; top: 3px; font-size: 16px; color: #64748b; }
+  .parts-card li .qty { color: #b91c1c; font-weight: 700; font-family: Consolas, monospace; font-size: 12px; }
+  .parts-card li .note { color: #64748b; font-size: 11px; font-style: italic; display: block; padding-top: 1px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>Dual-ESP Flipper Expansion — Wiring Diagram</h1>
+<p class="summary">
+  Flipper Zero powering <strong>ESP32-C5 DevKit</strong> (justcallmekoko Marauder) and <strong>ESP32-S3-WROOM-1-N16R8</strong> bare module (Ghost ESP Revival).
+  Every one of the 19 wires (W1 through W18, plus W1b) is individually drawn and labeled. No external power, no switch.
+  C5 is commanded over Flipper UART pins 13 and 14. S3 is commanded over its own <code>GhostNet</code> WiFi AP.
+</p>
+
+<h2>Parts &amp; components to gather</h2>
+<p style="color:#475569;font-size:13px;margin:4px 0 10px 0;">Tick each box as you find it. Every item here should already be on your bench — nothing new to buy.</p>
+<div class="parts-grid">
+
+  <div class="parts-card">
+    <h3>Modules</h3>
+    <ul>
+      <li><strong>Flipper Zero</strong> <span class="qty">× 1</span><span class="note">with 18-pin GPIO header accessible, battery ≥ 80%</span></li>
+      <li><strong>ESP32-C5 DevKit</strong> <span class="qty">× 1</span><span class="note">already flashed with justcallmekoko Marauder</span></li>
+      <li><strong>ESP32-S3-WROOM-1-N16R8</strong> bare module on breakout <span class="qty">× 1</span><span class="note">already flashed with Ghost ESP Revival; GPIO0 flash jumper removed</span></li>
+      <li><strong>AMS1117-3.3</strong> breakout module <span class="qty">× 1</span><span class="note">fixed 3.3 V LDO (verify it's the 3.3 V variant, not ADJ or 5.0)</span></li>
+    </ul>
+  </div>
+
+  <div class="parts-card">
+    <h3>Semiconductors</h3>
+    <ul>
+      <li><strong>1N5819</strong> Schottky diode <span class="qty">× 1</span><span class="note">or SS14 / 1N5817 — any Schottky with ≥ 1 A rating</span></li>
+    </ul>
+  </div>
+
+  <div class="parts-card">
+    <h3>Capacitors</h3>
+    <ul>
+      <li><strong>100 µF</strong> electrolytic <span class="qty">× 1</span><span class="note">C1 — 220 µF also fine if that's what you have</span></li>
+      <li><strong>22 µF</strong> electrolytic <span class="qty">× 1</span><span class="note">C3 — S3 bulk (47 µF acceptable substitute)</span></li>
+      <li><strong>10 µF</strong> electrolytic <span class="qty">× 1</span><span class="note">C2 — C5 local 3.3 V bulk</span></li>
+      <li><strong>1 µF</strong> ceramic <span class="qty">× 1</span><span class="note">C7 — S3 EN delay cap</span></li>
+      <li><strong>100 nF</strong> (0.1 µF) ceramic <span class="qty">× 3</span><span class="note">C4, C5, C6 — HF decoupling</span></li>
+    </ul>
+  </div>
+
+  <div class="parts-card">
+    <h3>Resistors</h3>
+    <ul>
+      <li><strong>10 kΩ</strong> 1/4 W resistor <span class="qty">× 2</span><span class="note">R1 (S3 EN pull-up) and R2 (S3 IO0 pull-up)</span></li>
+    </ul>
+  </div>
+
+  <div class="parts-card">
+    <h3>Wiring &amp; assembly</h3>
+    <ul>
+      <li><strong>Breadboard</strong> <span class="qty">× 1</span><span class="note">half-size or full-size, standard 0.1″ pitch</span></li>
+      <li><strong>Jumper wires</strong> <span class="qty">≥ 19</span><span class="note">ideally color-matched: red (5 V), orange (3.3 V), black (GND), yellow (TX), green (RX), slate/white (EN), purple (IO0)</span></li>
+      <li><strong>Flipper GPIO ribbon / breakout</strong> <span class="qty">× 1</span><span class="note">or 2×9 female header + ribbon if you don't have the dedicated breakout</span></li>
+    </ul>
+  </div>
+
+  <div class="parts-card">
+    <h3>Tools for verification</h3>
+    <ul>
+      <li><strong>Multimeter</strong> <span class="qty">× 1</span><span class="note">continuity + DC voltage + ohms modes — used for every step of the pre-power-on checklist</span></li>
+    </ul>
+  </div>
+
+</div>
+
+<div class="diagram-frame">
+<svg viewBox="0 0 1800 1650" role="img" aria-labelledby="svgTitle svgDesc" xmlns="http://www.w3.org/2000/svg">
+<title id="svgTitle">Dual-ESP Flipper Expansion wiring schematic</title>
+<desc id="svgDesc">Flipper Zero GPIO header wired to ESP32-C5 DevKit and ESP32-S3 breakout via 1N5819 Schottky, AMS1117-3.3 regulator, and a passive decoupling network.</desc>
+<style>
+  .rail       { fill: none; stroke-width: 7; stroke-linecap: round; }
+  .rail-5v    { stroke: #dc2626; }
+  .rail-3v3   { stroke: #f97316; }
+  .rail-gnd   { stroke: #111827; }
+  .wire       { fill: none; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
+  .w-5v       { stroke: #dc2626; }
+  .w-3v3      { stroke: #f97316; }
+  .w-gnd      { stroke: #111827; }
+  .w-tx       { stroke: #ca8a04; }
+  .w-rx       { stroke: #16a34a; }
+  .w-en       { stroke: #64748b; }
+  .w-io0      { stroke: #a855f7; }
+  .module     { fill: #f1f5f9; stroke: #334155; stroke-width: 1.4; }
+  .module-accent { fill: #dbeafe; stroke: #1d4ed8; stroke-width: 1.4; }
+  .header-box { fill: #fef3c7; stroke: #92400e; stroke-width: 2; }
+  .module-title { font: 700 15px "Segoe UI", system-ui, sans-serif; fill: #0f172a; text-anchor: middle; }
+  .module-sub   { font: 400 11px "Segoe UI", system-ui, sans-serif; fill: #475569; text-anchor: middle; }
+  .pin        { fill: #fffbeb; stroke: #78350f; stroke-width: 1; }
+  .pin-power  { fill: #fecaca; stroke: #991b1b; }
+  .pin-gnd    { fill: #d1d5db; stroke: #111827; }
+  .pin-3v3    { fill: #fed7aa; stroke: #9a3412; }
+  .pin-label  { font: 700 10.5px Consolas, "Courier New", monospace; fill: #1f2937; text-anchor: middle; dominant-baseline: middle; }
+  .pin-func   { font: 400 9.5px "Segoe UI", system-ui, sans-serif; fill: #6b7280; text-anchor: middle; }
+  .wlabel     { font: 700 12px Consolas, "Courier New", monospace; fill: #0f172a; text-anchor: middle; dominant-baseline: middle; }
+  .wlabel-bg  { fill: white; stroke: #cbd5e1; stroke-width: 0.8; }
+  .comp-val   { font: 600 13px "Segoe UI", system-ui, sans-serif; fill: #0f172a; text-anchor: start; }
+  .comp-ref   { font: 700 15px "Segoe UI", system-ui, sans-serif; fill: #b91c1c; text-anchor: start; }
+  .rail-label { font: 800 14px "Segoe UI", system-ui, sans-serif; }
+  .section    { font: 700 13px "Segoe UI", system-ui, sans-serif; fill: #475569; letter-spacing: 1px; }
+  .dot        { fill: #111827; }
+  .plate      { stroke: #0f172a; stroke-width: 3; fill: none; }
+  .lead       { stroke: #0f172a; stroke-width: 2.4; fill: none; stroke-linecap: square; }
+  .res-body   { fill: #fde68a; stroke: #0f172a; stroke-width: 1.6; }
+  .zone       { stroke-width: 1.2; stroke-dasharray: 6 3; fill-opacity: 0.22; }
+  .zone-a     { fill: #fef3c7; stroke: #d97706; }
+  .zone-b     { fill: #fecaca; stroke: #b91c1c; }
+  .zone-c     { fill: #dbeafe; stroke: #1d4ed8; }
+  .zone-d     { fill: #e5e7eb; stroke: #4b5563; }
+  .zone-e     { fill: #fed7aa; stroke: #c2410c; }
+  .zone-f     { fill: #dcfce7; stroke: #15803d; }
+  .zone-title { font: 800 14px "Segoe UI", system-ui, sans-serif; letter-spacing: 0.5px; }
+  .annotate   { font: 700 13px "Segoe UI", system-ui, sans-serif; fill: #b91c1c; }
+  .bracket    { stroke: #b91c1c; stroke-width: 2; fill: none; stroke-linecap: round; }
+  .star-badge { fill: #fef3c7; stroke: #b45309; stroke-width: 1.4; }
+  .star-text  { font: 700 12px "Segoe UI", system-ui, sans-serif; fill: #78350f; }
+</style>
+
+<!-- ============================================================
+     TITLE
+============================================================ -->
+<text x="900" y="28" text-anchor="middle" font-size="18" font-weight="700" fill="#0f172a">Bench build — 19 wires, all passives, Flipper-powered</text>
+
+<!-- ============================================================
+     FLIPPER ZERO GPIO HEADER (only 4 of 18 pins used)
+============================================================ -->
+<g id="flipper">
+  <rect x="300" y="60" width="1200" height="150" rx="12" class="header-box"/>
+  <text x="900" y="92" text-anchor="middle" font-size="16" font-weight="700" fill="#78350f">Flipper Zero GPIO Header</text>
+  <text x="900" y="109" text-anchor="middle" font-size="11" fill="#92400e">only 4 of 18 pins used · pins 10/11/12/17 (SWD + iButton) must not be touched</text>
+
+  <!-- Pin 1 (5V) -->
+  <g transform="translate(490,170)">
+    <rect x="-28" y="-20" width="56" height="40" rx="4" class="pin pin-power"/>
+    <text class="pin-label" y="-4">Pin 1</text>
+    <text class="pin-label" y="11" fill="#991b1b">5V</text>
+  </g>
+
+  <!-- Pin 13 (TX) -->
+  <g transform="translate(840,170)">
+    <rect x="-28" y="-20" width="56" height="40" rx="4" class="pin"/>
+    <text class="pin-label" y="-4">Pin 13</text>
+    <text class="pin-func" y="11" fill="#ca8a04">UART TX</text>
+  </g>
+
+  <!-- Pin 14 (RX) -->
+  <g transform="translate(985,170)">
+    <rect x="-28" y="-20" width="56" height="40" rx="4" class="pin"/>
+    <text class="pin-label" y="-4">Pin 14</text>
+    <text class="pin-func" y="11" fill="#16a34a">UART RX</text>
+  </g>
+
+  <!-- Pin 18 (GND) -->
+  <g transform="translate(1340,170)">
+    <rect x="-28" y="-20" width="56" height="40" rx="4" class="pin pin-gnd"/>
+    <text class="pin-label" y="-4">Pin 18</text>
+    <text class="pin-label" y="11">GND</text>
+  </g>
+</g>
+
+<!-- ============================================================
+     W1 : Flipper Pin 1 -> D1 anode
+============================================================ -->
+<line x1="490" y1="190" x2="490" y2="285" class="wire w-5v"/>
+<g transform="translate(515,237)"><rect x="-13" y="-9" width="26" height="18" rx="3" class="wlabel-bg"/><text class="wlabel">W1</text></g>
+
+<!-- ============================================================
+     D1 SCHOTTKY (1N5819) — anode at top, cathode at bottom
+     SERIES component: sits IN-LINE with the 5V feed
+============================================================ -->
+<g id="D1">
+  <!-- triangle body pointing down (anode-to-cathode = top-to-bottom) -->
+  <polygon points="475,285 505,285 490,312" fill="#0f172a" stroke="#0f172a" stroke-width="1"/>
+  <!-- cathode bar -->
+  <line x1="468" y1="312" x2="512" y2="312" stroke="#0f172a" stroke-width="2.8"/>
+  <!-- Schottky "S" hooks on the cathode bar -->
+  <path d="M 468,312 L 461,306 L 461,318 L 468,312 Z" fill="none" stroke="#0f172a" stroke-width="2"/>
+  <path d="M 512,312 L 519,306 L 519,318 L 512,312 Z" fill="none" stroke="#0f172a" stroke-width="2"/>
+  <text x="535" y="295" class="comp-ref">D1</text>
+  <text x="535" y="311" class="comp-val">1N5819</text>
+  <text x="535" y="326" font-size="10" fill="#64748b">reverse-polarity protection</text>
+</g>
+
+<!-- SERIES callout for D1 -->
+<g id="series-callout">
+  <text x="320" y="293" class="annotate" text-anchor="end" font-size="15">◀ SERIES ▶</text>
+  <text x="320" y="310" font-size="11" fill="#64748b" text-anchor="end">(in-line with 5V feed)</text>
+  <text x="320" y="324" font-size="11" fill="#64748b" text-anchor="end">band faces the RAIL</text>
+</g>
+
+<!-- ============================================================
+     W1b : D1 cathode -> 5V rail
+============================================================ -->
+<line x1="490" y1="312" x2="490" y2="380" class="wire w-5v"/>
+<g transform="translate(515,347)"><rect x="-15" y="-9" width="30" height="18" rx="3" class="wlabel-bg"/><text class="wlabel">W1b</text></g>
+
+<!-- ============================================================
+     5V RAIL
+============================================================ -->
+<line x1="90" y1="380" x2="1750" y2="380" class="rail rail-5v"/>
+<text x="90" y="365" class="rail-label" fill="#dc2626">5V RAIL (≈4.7 V after D1)</text>
+
+<!-- PARALLEL BANK bracket over C1 + C4 on the 5V rail -->
+<g id="para-bank-5v">
+  <path d="M 155,355 L 155,345 L 285,345 L 285,355" class="bracket"/>
+  <text x="220" y="338" class="annotate" text-anchor="middle" font-size="13">PARALLEL BANK</text>
+  <text x="220" y="352" font-size="10" fill="#64748b" text-anchor="middle">(decoupling: 5V ↔ GND)</text>
+</g>
+<!-- junction dots on rail (one per tap) -->
+<circle cx="180" cy="380" r="5.5" class="dot"/>
+<circle cx="260" cy="380" r="5.5" class="dot"/>
+<circle cx="490" cy="380" r="5.5" class="dot"/>
+<circle cx="480" cy="380" r="5.5" class="dot"/>
+<circle cx="985" cy="380" r="5.5" class="dot"/>
+
+<!-- ============================================================
+     C1 (100 µF electrolytic) — 5V rail to GND rail, bulk
+============================================================ -->
+<g id="C1">
+  <line x1="180" y1="380" x2="180" y2="406" class="lead"/>
+  <line x1="162" y1="406" x2="198" y2="406" class="plate"/>
+  <text x="147" y="412" font-size="14" font-weight="700" fill="#dc2626">+</text>
+  <path d="M 160,418 Q 180,432 200,418" class="plate"/>
+  <line x1="180" y1="425" x2="180" y2="1200" class="lead"/>
+  <text x="210" y="414" class="comp-ref">C1</text>
+  <text x="210" y="430" class="comp-val">100 µF</text>
+</g>
+
+<!-- ============================================================
+     C4 (100 nF ceramic) — 5V rail to GND rail, HF decoupling
+============================================================ -->
+<g id="C4">
+  <line x1="260" y1="380" x2="260" y2="410" class="lead"/>
+  <line x1="246" y1="410" x2="274" y2="410" class="plate"/>
+  <line x1="246" y1="418" x2="274" y2="418" class="plate"/>
+  <line x1="260" y1="418" x2="260" y2="1200" class="lead"/>
+  <text x="282" y="414" class="comp-ref">C4</text>
+  <text x="282" y="428" class="comp-val">100 nF</text>
+</g>
+
+<!-- ============================================================
+     W7 : Flipper Pin 18 (GND) -> GND rail
+     Routed off the right side of the header to avoid modules
+============================================================ -->
+<path d="M 1340,190 L 1340,230 L 1680,230 L 1680,1200" class="wire w-gnd"/>
+<g transform="translate(1500,218)"><rect x="-13" y="-9" width="26" height="18" rx="3" class="wlabel-bg"/><text class="wlabel">W7</text></g>
+
+<!-- ============================================================
+     W11 : Flipper Pin 13 (UART TX) -> ESP32-C5 RX0
+     W12 : Flipper Pin 14 (UART RX) -> ESP32-C5 TX0
+     Routed down and left into the top edge of the C5 module
+     THICKENED for visibility (essential wires for Marauder comms)
+============================================================ -->
+<path d="M 840,190 L 840,405 L 600,405 L 600,460" class="wire w-tx" stroke-width="4"/>
+<g transform="translate(720,393)"><rect x="-15" y="-9" width="30" height="18" rx="3" class="wlabel-bg"/><text class="wlabel">W11</text></g>
+
+<path d="M 985,190 L 985,210 L 965,210 L 965,440 L 680,440 L 680,460" class="wire w-rx" stroke-width="4"/>
+<g transform="translate(820,428)"><rect x="-15" y="-9" width="30" height="18" rx="3" class="wlabel-bg"/><text class="wlabel">W12</text></g>
+
+<!-- Flipper UART callout box explaining the connection -->
+<g id="uart-callout">
+  <rect x="90" y="260" width="340" height="110" rx="6" fill="#fef9c3" stroke="#ca8a04" stroke-width="1.4"/>
+  <text x="105" y="282" class="annotate" fill="#78350f" font-size="14">FLIPPER ↔ C5 UART (required)</text>
+  <text x="105" y="304" font-size="12" fill="#713f12"><tspan fill="#ca8a04" font-weight="700">W11 (yellow)</tspan>: Flipper Pin 13 (TX) → C5 RX0</text>
+  <text x="105" y="322" font-size="12" fill="#713f12"><tspan fill="#16a34a" font-weight="700">W12 (green)</tspan> : Flipper Pin 14 (RX) → C5 TX0</text>
+  <text x="105" y="344" font-size="11" fill="#713f12" font-style="italic">Without these, the Marauder companion app on</text>
+  <text x="105" y="358" font-size="11" fill="#713f12" font-style="italic">the Flipper has no way to control the C5.</text>
+</g>
+
+<!-- ============================================================
+     ESP32-C5 DEVKIT  (Marauder firmware)
+============================================================ -->
+<g id="C5">
+  <rect x="420" y="460" width="300" height="320" rx="10" class="module-accent"/>
+  <text class="module-title" x="570" y="490">ESP32-C5 DevKit</text>
+  <text class="module-sub"   x="570" y="506">justcallmekoko Marauder · WiFi 6 2.4/5 GHz</text>
+
+  <!-- Top pins -->
+  <g transform="translate(480,460)"><rect x="-26" y="-2" width="52" height="22" rx="3" class="pin pin-power"/><text class="pin-label" y="12">VIN</text></g>
+  <g transform="translate(600,460)"><rect x="-26" y="-2" width="52" height="22" rx="3" class="pin" stroke="#ca8a04" stroke-width="2.5"/><text class="pin-label" y="12">RX0</text></g>
+  <g transform="translate(680,460)"><rect x="-26" y="-2" width="52" height="22" rx="3" class="pin" stroke="#16a34a" stroke-width="2.5"/><text class="pin-label" y="12">TX0</text></g>
+
+  <!-- Right pin: 3V3 (local, from C5's onboard regulator) -->
+  <g transform="translate(720,540)"><rect x="-2" y="-14" width="36" height="28" rx="3" class="pin pin-3v3"/><text class="pin-label" x="16" y="1">3V3</text></g>
+
+  <!-- Bottom pin: GND -->
+  <g transform="translate(480,780)"><rect x="-26" y="-18" width="52" height="22" rx="3" class="pin pin-gnd"/><text class="pin-label" y="-6">GND</text></g>
+
+  <!-- Decorative labels -->
+  <text x="570" y="620" class="module-sub">(onboard regulator</text>
+  <text x="570" y="636" class="module-sub">generates local 3V3)</text>
+  <rect x="555" y="690" width="30" height="10" rx="2" fill="#475569"/>
+  <text x="570" y="718" class="module-sub">USB-C (flash only)</text>
+</g>
+
+<!-- ============================================================
+     W2 : 5V rail -> C5 VIN
+     (junction dot at (480,380) is already declared in the 5V-rail dot list above)
+============================================================ -->
+<line x1="480" y1="380" x2="480" y2="460" class="wire w-5v"/>
+<g transform="translate(495,418)"><rect x="-13" y="-9" width="26" height="18" rx="3" class="wlabel-bg"/><text class="wlabel">W2</text></g>
+
+<!-- ============================================================
+     W9 : C5 GND -> GND rail
+============================================================ -->
+<line x1="480" y1="780" x2="480" y2="1200" class="wire w-gnd"/>
+<g transform="translate(495,990)"><rect x="-13" y="-9" width="26" height="18" rx="3" class="wlabel-bg"/><text class="wlabel">W9</text></g>
+<circle cx="480" cy="1200" r="5.5" class="dot"/>
+
+<!-- ============================================================
+     C5 LOCAL 3V3 TRACE — short branch off C5's 3V3 pin,
+     holds C2 and C5cap decoupling caps. NOT connected to the
+     external 3.3V rail (which is the AMS1117 net for the S3).
+============================================================ -->
+<!-- horizontal branch trace -->
+<line x1="756" y1="540" x2="870" y2="540" class="lead"/>
+<text x="756" y="528" font-size="11" font-style="italic" font-weight="700" fill="#9a3412">C5 LOCAL 3V3</text>
+<text x="756" y="516" font-size="9" font-style="italic" fill="#64748b">(from C5 onboard reg — SEPARATE net)</text>
+<circle cx="780" cy="540" r="4" class="dot"/>
+<circle cx="830" cy="540" r="4" class="dot"/>
+
+<!-- PARALLEL BANK bracket for C2 + C5cap -->
+<g id="para-bank-c5">
+  <path d="M 755,820 L 745,820 L 745,990 L 855,990 L 855,820 L 845,820" class="bracket"/>
+  <text x="730" y="905" class="annotate" text-anchor="end" font-size="13">PARALLEL</text>
+  <text x="730" y="920" class="annotate" text-anchor="end" font-size="13">BANK</text>
+  <text x="730" y="938" font-size="10" fill="#64748b" text-anchor="end">(C5 3V3 ↔ GND)</text>
+</g>
+
+<!-- ============================================================
+     C2 (10 µF electrolytic) — C5 local 3V3 -> GND rail
+============================================================ -->
+<g id="C2">
+  <line x1="780" y1="540" x2="780" y2="898" class="lead"/>
+  <line x1="762" y1="898" x2="798" y2="898" class="plate"/>
+  <text x="745" y="904" font-size="13" font-weight="700" fill="#dc2626">+</text>
+  <path d="M 760,910 Q 780,924 800,910" class="plate"/>
+  <line x1="780" y1="917" x2="780" y2="1200" class="lead"/>
+  <text x="810" y="906" class="comp-ref">C2</text>
+  <text x="810" y="922" class="comp-val">10 µF</text>
+</g>
+<circle cx="780" cy="1200" r="5.5" class="dot"/>
+
+<!-- ============================================================
+     C5cap (100 nF ceramic) — C5 local 3V3 -> GND rail
+============================================================ -->
+<g id="C5cap">
+  <line x1="830" y1="540" x2="830" y2="902" class="lead"/>
+  <line x1="816" y1="902" x2="844" y2="902" class="plate"/>
+  <line x1="816" y1="910" x2="844" y2="910" class="plate"/>
+  <line x1="830" y1="910" x2="830" y2="1200" class="lead"/>
+  <text x="852" y="906" class="comp-ref">C5</text>
+  <text x="852" y="920" class="comp-val">100 nF</text>
+</g>
+<circle cx="830" cy="1200" r="5.5" class="dot"/>
+
+<!-- ============================================================
+     AMS1117-3.3 MODULE (5V → 3.3V LDO for the S3)
+============================================================ -->
+<g id="AMS">
+  <rect x="920" y="460" width="160" height="180" rx="10" class="module"/>
+  <text class="module-title" x="1000" y="490">AMS1117-3.3</text>
+  <text class="module-sub"   x="1000" y="506">5V → 3.3V LDO</text>
+
+  <g transform="translate(985,460)"><rect x="-20" y="-2" width="40" height="22" rx="3" class="pin pin-power"/><text class="pin-label" y="12">IN</text></g>
+  <g transform="translate(1080,540)"><rect x="-2" y="-14" width="36" height="28" rx="3" class="pin pin-3v3"/><text class="pin-label" x="16" y="1">OUT</text></g>
+  <g transform="translate(1000,640)"><rect x="-20" y="-18" width="40" height="22" rx="3" class="pin pin-gnd"/><text class="pin-label" y="-6">GND</text></g>
+
+  <text x="1000" y="585" class="module-sub">1.1 V dropout</text>
+  <text x="1000" y="600" class="module-sub">~500 mA max</text>
+</g>
+
+<!-- ============================================================
+     W3 : 5V rail -> AMS1117 IN
+============================================================ -->
+<line x1="985" y1="380" x2="985" y2="460" class="wire w-5v"/>
+<g transform="translate(1000,418)"><rect x="-13" y="-9" width="26" height="18" rx="3" class="wlabel-bg"/><text class="wlabel">W3</text></g>
+
+<!-- ============================================================
+     W4 : AMS1117 OUT -> 3.3V rail
+============================================================ -->
+<path d="M 1116,540 L 1140,540 L 1140,700" class="wire w-3v3"/>
+<g transform="translate(1155,610)"><rect x="-13" y="-9" width="26" height="18" rx="3" class="wlabel-bg"/><text class="wlabel">W4</text></g>
+
+<!-- ============================================================
+     W6 : AMS1117 GND -> GND rail
+============================================================ -->
+<line x1="1000" y1="640" x2="1000" y2="1200" class="wire w-gnd"/>
+<g transform="translate(1015,920)"><rect x="-13" y="-9" width="26" height="18" rx="3" class="wlabel-bg"/><text class="wlabel">W6</text></g>
+<circle cx="1000" cy="1200" r="5.5" class="dot"/>
+
+<!-- ============================================================
+     3.3V RAIL — starts past the AMS1117 OUT feed
+============================================================ -->
+<line x1="1100" y1="700" x2="1750" y2="700" class="rail rail-3v3"/>
+<text x="1100" y="685" class="rail-label" fill="#f97316">3.3V RAIL (from AMS1117)</text>
+<!-- Junction dots on 3V3 rail -->
+<circle cx="1140" cy="700" r="5.5" class="dot"/>  <!-- W4 lands -->
+<circle cx="1180" cy="700" r="5.5" class="dot"/>  <!-- C3 top -->
+<circle cx="1220" cy="700" r="5.5" class="dot"/>  <!-- C6 top -->
+<circle cx="1240" cy="700" r="5.5" class="dot"/>  <!-- W5 departs -->
+<circle cx="1620" cy="700" r="5.5" class="dot"/>  <!-- R2 bottom -->
+<circle cx="1640" cy="700" r="5.5" class="dot"/>  <!-- R1 bottom -->
+
+<!-- ============================================================
+     ESP32-S3-WROOM-1-N16R8 BREAKOUT (Ghost ESP Revival)
+============================================================ -->
+<g id="S3">
+  <rect x="1200" y="460" width="340" height="360" rx="10" class="module"/>
+  <text class="module-title" x="1370" y="490">ESP32-S3-WROOM-1-N16R8</text>
+  <text class="module-sub"   x="1370" y="506">Ghost ESP Revival · BLE + misc · AP: GhostNet</text>
+
+  <!-- 3V3 pin on top-left -->
+  <g transform="translate(1240,460)"><rect x="-24" y="-2" width="48" height="22" rx="3" class="pin pin-3v3"/><text class="pin-label" y="12">3V3</text></g>
+
+  <!-- GND pin on bottom-left -->
+  <g transform="translate(1260,820)"><rect x="-24" y="-18" width="48" height="22" rx="3" class="pin pin-gnd"/><text class="pin-label" y="-6">GND</text></g>
+
+  <!-- Right-side pins -->
+  <g transform="translate(1540,540)"><rect x="-2" y="-14" width="36" height="28" rx="3" class="pin"/><text class="pin-label" x="16" y="1">EN</text></g>
+  <g transform="translate(1540,620)"><rect x="-2" y="-14" width="36" height="28" rx="3" class="pin"/><text class="pin-label" x="16" y="1">IO0</text></g>
+  <g transform="translate(1540,720)"><rect x="-2" y="-14" width="36" height="28" rx="3" class="pin" opacity="0.55"/><text class="pin-label" x="16" y="1" opacity="0.6">TX</text></g>
+  <g transform="translate(1540,760)"><rect x="-2" y="-14" width="36" height="28" rx="3" class="pin" opacity="0.55"/><text class="pin-label" x="16" y="1" opacity="0.6">RX</text></g>
+
+  <text x="1370" y="640" class="module-sub">strap pins IO3/IO45/IO46:</text>
+  <text x="1370" y="656" class="module-sub">leave floating (defaults OK)</text>
+  <text x="1370" y="686" class="module-sub">UART0 (TX/RX) unused at runtime —</text>
+  <text x="1370" y="700" class="module-sub">controlled via GhostNet WiFi AP</text>
+</g>
+
+<!-- ============================================================
+     W5 : 3.3V rail -> S3 3V3 pin
+     Short vertical at x=1240 (LEFT of S3 module edge at x=1280)
+============================================================ -->
+<path d="M 1240,700 L 1240,460" class="wire w-3v3"/>
+<g transform="translate(1255,578)"><rect x="-13" y="-9" width="26" height="18" rx="3" class="wlabel-bg"/><text class="wlabel">W5</text></g>
+
+<!-- ============================================================
+     W10 : S3 GND -> GND rail
+============================================================ -->
+<line x1="1260" y1="820" x2="1260" y2="1200" class="wire w-gnd"/>
+<g transform="translate(1275,1010)"><rect x="-15" y="-9" width="30" height="18" rx="3" class="wlabel-bg"/><text class="wlabel">W10</text></g>
+<circle cx="1260" cy="1200" r="5.5" class="dot"/>
+
+<!-- ============================================================
+     C3 (22 µF electrolytic) — 3V3 rail -> GND rail (S3 bulk)
+     STAR COMPONENT: WROOM-1 minimum bulk per Espressif
+     POSITION: LEFT of S3 module so leads are clearly on the
+     power rail, NOT mistaken for pin traces into the module.
+============================================================ -->
+<g id="C3">
+  <!-- highlight glow behind cap -->
+  <rect x="1150" y="870" width="95" height="80" rx="6" fill="#fef08a" opacity="0.45"/>
+  <line x1="1180" y1="700" x2="1180" y2="898" class="lead"/>
+  <line x1="1158" y1="898" x2="1202" y2="898" stroke="#0f172a" stroke-width="4"/>
+  <text x="1140" y="904" font-size="15" font-weight="700" fill="#dc2626">+</text>
+  <path d="M 1156,912 Q 1180,928 1204,912" stroke="#0f172a" stroke-width="4" fill="none"/>
+  <line x1="1180" y1="919" x2="1180" y2="1200" class="lead"/>
+  <text x="1095" y="906" class="comp-ref" font-size="17" text-anchor="end">C3</text>
+  <text x="1095" y="924" class="comp-val" font-size="14" font-weight="700" text-anchor="end">22 µF</text>
+  <!-- star badge -->
+  <g transform="translate(1075,875)">
+    <rect x="-22" y="-16" width="42" height="30" rx="14" class="star-badge"/>
+    <text x="-1" y="4" text-anchor="middle" font-size="16">★</text>
+  </g>
+  <text x="1095" y="942" font-size="11" font-weight="700" fill="#78350f" text-anchor="end">S3 bulk cap</text>
+  <text x="1095" y="957" font-size="10" fill="#78350f" text-anchor="end">(WROOM-1 min)</text>
+</g>
+<circle cx="1180" cy="1200" r="5.5" class="dot"/>
+
+<!-- PARALLEL BANK bracket for C3 + C6 on 3V3 rail -->
+<g id="para-bank-s3">
+  <path d="M 1170,676 L 1170,668 L 1230,668 L 1230,676" class="bracket"/>
+  <text x="1200" y="660" class="annotate" text-anchor="middle" font-size="13">PARALLEL BANK</text>
+  <text x="1200" y="674" font-size="10" fill="#64748b" text-anchor="middle">(3.3V ↔ GND, serving S3)</text>
+</g>
+
+<!-- ============================================================
+     C6 (100 nF ceramic) — 3V3 rail -> GND rail (S3 HF decoupling)
+     Paired with C3; positioned LEFT of S3 module so its leads
+     are obviously on the power rail.
+============================================================ -->
+<g id="C6">
+  <line x1="1220" y1="700" x2="1220" y2="902" class="lead"/>
+  <line x1="1206" y1="902" x2="1234" y2="902" class="plate"/>
+  <line x1="1206" y1="910" x2="1234" y2="910" class="plate"/>
+  <line x1="1220" y1="910" x2="1220" y2="1200" class="lead"/>
+  <text x="1242" y="906" class="comp-ref">C6</text>
+  <text x="1242" y="920" class="comp-val">100 nF</text>
+</g>
+<circle cx="1220" cy="1200" r="5.5" class="dot"/>
+
+<!-- ============================================================
+     EN trace — shared horizontal from S3 EN pin out to the right
+     Connects R1 (pull-up to 3V3) and C7 (delay cap to GND)
+============================================================ -->
+<line x1="1576" y1="540" x2="1700" y2="540" class="wire w-en"/>
+<circle cx="1640" cy="540" r="4" class="dot"/>
+<!-- W13 label on segment EN -> R1 branch -->
+<g transform="translate(1607,528)"><rect x="-15" y="-9" width="30" height="18" rx="3" class="wlabel-bg"/><text class="wlabel">W13</text></g>
+<!-- W15 label on segment R1 branch -> C7 top -->
+<g transform="translate(1670,528)"><rect x="-15" y="-9" width="30" height="18" rx="3" class="wlabel-bg"/><text class="wlabel">W15</text></g>
+
+<!-- R1 (10 kΩ) — EN pull-up to 3V3 rail -->
+<g id="R1">
+  <line x1="1640" y1="540" x2="1640" y2="575" class="lead"/>
+  <rect x="1628" y="575" width="24" height="85" rx="3" class="res-body"/>
+  <text x="1658" y="612" class="comp-ref">R1</text>
+  <text x="1658" y="628" class="comp-val">10 kΩ</text>
+  <line x1="1640" y1="660" x2="1640" y2="700" class="lead"/>
+</g>
+
+<!-- EN RESET NETWORK annotation (positioned top-right, away from modules) -->
+<g id="en-network-note">
+  <rect x="1510" y="58" width="270" height="128" rx="6" fill="#ecfdf5" stroke="#059669" stroke-width="1.2"/>
+  <text x="1645" y="78" class="annotate" fill="#065f46" text-anchor="middle" font-size="13">S3 AUX NETWORK (right-side)</text>
+  <text x="1520" y="99" font-size="11" fill="#064e3b" font-weight="700">R1 (10 kΩ):</text>
+  <text x="1585" y="99" font-size="10" fill="#064e3b">EN pull-up → 3V3 rail</text>
+  <text x="1520" y="116" font-size="11" fill="#064e3b" font-weight="700">C7 (1 µF):</text>
+  <text x="1585" y="116" font-size="10" fill="#064e3b">EN delay cap → GND</text>
+  <text x="1520" y="133" font-size="11" fill="#064e3b" font-weight="700">R2 (10 kΩ):</text>
+  <text x="1585" y="133" font-size="10" fill="#064e3b">IO0 pull-up → 3V3 rail</text>
+  <text x="1520" y="155" font-size="10" font-style="italic" fill="#14532d">R1 + C7 = ~10 ms RC delay so</text>
+  <text x="1520" y="168" font-size="10" font-style="italic" fill="#14532d">S3 boots AFTER 3V3 is stable.</text>
+  <text x="1520" y="181" font-size="10" font-style="italic" fill="#14532d">R2 keeps IO0 out of flash mode.</text>
+</g>
+<g transform="translate(1660,682)"><rect x="-15" y="-9" width="30" height="18" rx="3" class="wlabel-bg"/><text class="wlabel">W14</text></g>
+
+<!-- C7 (1 µF ceramic) — EN delay cap to GND rail -->
+<g id="C7">
+  <line x1="1700" y1="540" x2="1700" y2="902" class="lead"/>
+  <line x1="1686" y1="902" x2="1714" y2="902" class="plate"/>
+  <line x1="1686" y1="910" x2="1714" y2="910" class="plate"/>
+  <line x1="1700" y1="910" x2="1700" y2="1200" class="lead"/>
+  <text x="1722" y="906" class="comp-ref">C7</text>
+  <text x="1722" y="920" class="comp-val">1 µF</text>
+</g>
+<g transform="translate(1715,1060)"><rect x="-15" y="-9" width="30" height="18" rx="3" class="wlabel-bg"/><text class="wlabel">W16</text></g>
+<circle cx="1700" cy="1200" r="5.5" class="dot"/>
+
+<!-- ============================================================
+     IO0 pull-up — S3 IO0 pin -> R2 -> 3V3 rail
+     Short horizontal trace from IO0 to R2, then R2 drops to rail
+============================================================ -->
+<line x1="1576" y1="620" x2="1620" y2="620" class="wire w-io0"/>
+<g transform="translate(1598,608)"><rect x="-15" y="-9" width="30" height="18" rx="3" class="wlabel-bg"/><text class="wlabel">W17</text></g>
+
+<g id="R2">
+  <line x1="1620" y1="620" x2="1620" y2="634" class="lead"/>
+  <rect x="1608" y="634" width="24" height="56" rx="3" class="res-body"/>
+  <text x="1640" y="658" class="comp-ref">R2</text>
+  <text x="1640" y="674" class="comp-val">10 kΩ</text>
+  <line x1="1620" y1="690" x2="1620" y2="700" class="lead"/>
+</g>
+<g transform="translate(1582,688)"><rect x="-15" y="-9" width="30" height="18" rx="3" class="wlabel-bg"/><text class="wlabel">W18</text></g>
+
+<!-- ============================================================
+     GND RAIL
+============================================================ -->
+<line x1="90" y1="1200" x2="1750" y2="1200" class="rail rail-gnd"/>
+<text x="90" y="1230" class="rail-label">GND RAIL — COMMON RETURN (every component's GND leg ties here)</text>
+<text x="90" y="1247" font-size="11" fill="#475569" font-style="italic">W8: jumper between the breadboard's two (−) strips so the whole rail is one net</text>
+<!-- Junction dots on GND rail (one per drop) -->
+<circle cx="180" cy="1200" r="5.5" class="dot"/>
+<circle cx="260" cy="1200" r="5.5" class="dot"/>
+<circle cx="1680" cy="1200" r="5.5" class="dot"/>
+
+<!-- ============================================================
+     CROSSING-CONVENTION NOTE + LEGEND
+============================================================ -->
+<g transform="translate(90, 1290)">
+  <text x="0" y="0" class="section">COLOR KEY</text>
+  <g transform="translate(0,22)"><rect x="0" y="0" width="28" height="6" fill="#dc2626"/><text x="38" y="6" font-size="12" fill="#0f172a">5 V (red)</text></g>
+  <g transform="translate(0,44)"><rect x="0" y="0" width="28" height="6" fill="#f97316"/><text x="38" y="6" font-size="12" fill="#0f172a">3.3 V (orange)</text></g>
+  <g transform="translate(0,66)"><rect x="0" y="0" width="28" height="6" fill="#111827"/><text x="38" y="6" font-size="12" fill="#0f172a">GND (black)</text></g>
+  <g transform="translate(210,22)"><rect x="0" y="0" width="28" height="6" fill="#ca8a04"/><text x="38" y="6" font-size="12" fill="#0f172a">UART TX (yellow)</text></g>
+  <g transform="translate(210,44)"><rect x="0" y="0" width="28" height="6" fill="#16a34a"/><text x="38" y="6" font-size="12" fill="#0f172a">UART RX (green)</text></g>
+  <g transform="translate(210,66)"><rect x="0" y="0" width="28" height="6" fill="#64748b"/><text x="38" y="6" font-size="12" fill="#0f172a">EN (slate)</text></g>
+  <g transform="translate(420,22)"><rect x="0" y="0" width="28" height="6" fill="#a855f7"/><text x="38" y="6" font-size="12" fill="#0f172a">IO0 (purple)</text></g>
+  <g transform="translate(420,44)"><circle cx="14" cy="3" r="4" fill="#111827"/><text x="38" y="6" font-size="12" fill="#0f172a">= electrical junction</text></g>
+  <g transform="translate(420,66)"><text x="0" y="6" font-size="12" fill="#0f172a"><tspan fill="#64748b">crossing without a dot = not connected</tspan></text></g>
+</g>
+
+<!-- Reference box for control model -->
+<g transform="translate(740, 1290)">
+  <rect x="0" y="-18" width="700" height="150" rx="8" fill="#eff6ff" stroke="#1d4ed8" stroke-width="1.2"/>
+  <text x="14" y="0" class="section" fill="#1e3a8a">CONTROL CHANNELS (no UART contention)</text>
+  <text x="14" y="26" font-size="12" fill="#0f172a">Flipper ↔ ESP32-C5 — UART on pins 13/14 (Marauder companion app on Flipper)</text>
+  <text x="14" y="46" font-size="12" fill="#0f172a">Phone/laptop ↔ ESP32-S3 — Wi-Fi AP "GhostNet" → http://192.168.4.1</text>
+  <text x="14" y="70" font-size="11" fill="#475569">• Different buses → both ESPs run simultaneously, no switch/mux needed.</text>
+  <text x="14" y="88" font-size="11" fill="#475569">• Operational rule: don't run Marauder deauth flood + Ghost ESP BLE spam at the same time (5 V budget).</text>
+  <text x="14" y="106" font-size="11" fill="#475569">• Flipper 5 V output is OFF by default — enable in Flipper GPIO menu before use.</text>
+  <text x="14" y="124" font-size="11" fill="#475569">• Note: C5 local 3 V 3 (from its onboard reg) and the external 3.3 V rail (AMS1117) are SEPARATE nets.</text>
+</g>
+
+</svg>
+</div>
+
+<h2>Complete wire reference (all 19 connections)</h2>
+<table>
+<thead>
+<tr><th class="mono">#</th><th>From</th><th>To</th><th>Color</th><th>Purpose</th></tr>
+</thead>
+<tbody>
+<tr><td class="mono">W1</td><td>Flipper Pin 1 (5V)</td><td>D1 anode</td><td><span class="swatch s-5v"></span>red</td><td>5 V feed into reverse-polarity Schottky</td></tr>
+<tr><td class="mono">W1b</td><td>D1 cathode</td><td>Breadboard 5V rail</td><td><span class="swatch s-5v"></span>red</td><td>Post-diode 5 V (~4.7 V under load)</td></tr>
+<tr><td class="mono">W2</td><td>5V rail</td><td>ESP32-C5 DevKit VIN</td><td><span class="swatch s-5v"></span>red</td><td>Powers C5 via its onboard regulator</td></tr>
+<tr><td class="mono">W3</td><td>5V rail</td><td>AMS1117 IN</td><td><span class="swatch s-5v"></span>red</td><td>Feeds 3.3 V LDO for the S3</td></tr>
+<tr><td class="mono">W4</td><td>AMS1117 OUT</td><td>Breadboard 3.3V rail</td><td><span class="swatch s-3v3"></span>orange</td><td>Regulated 3.3 V onto the rail</td></tr>
+<tr><td class="mono">W5</td><td>3.3V rail</td><td>S3 breakout 3V3 pin</td><td><span class="swatch s-3v3"></span>orange</td><td>Powers the S3 (routed around left side of module)</td></tr>
+<tr><td class="mono">W6</td><td>AMS1117 GND</td><td>GND rail</td><td><span class="swatch s-gnd"></span>black</td><td>AMS1117 return</td></tr>
+<tr><td class="mono">W7</td><td>Flipper Pin 18 (GND)</td><td>GND rail</td><td><span class="swatch s-gnd"></span>black</td><td>Main ground feed from Flipper</td></tr>
+<tr><td class="mono">W8</td><td>GND rail top strip</td><td>GND rail bottom strip</td><td><span class="swatch s-gnd"></span>black</td><td>Unifies both breadboard (−) rails (single-bus schematic)</td></tr>
+<tr><td class="mono">W9</td><td>ESP32-C5 DevKit GND</td><td>GND rail</td><td><span class="swatch s-gnd"></span>black</td><td>C5 return</td></tr>
+<tr><td class="mono">W10</td><td>S3 breakout GND</td><td>GND rail</td><td><span class="swatch s-gnd"></span>black</td><td>S3 return</td></tr>
+<tr><td class="mono">W11</td><td>Flipper Pin 13 (UART TX)</td><td>ESP32-C5 DevKit RX0</td><td><span class="swatch s-tx"></span>yellow</td><td>Flipper → C5 UART</td></tr>
+<tr><td class="mono">W12</td><td>Flipper Pin 14 (UART RX)</td><td>ESP32-C5 DevKit TX0</td><td><span class="swatch s-rx"></span>green</td><td>C5 → Flipper UART</td></tr>
+<tr><td class="mono">W13</td><td>S3 breakout EN pin</td><td>R1 (10 kΩ) top leg</td><td><span class="swatch s-en"></span>slate</td><td>EN pull-up leg of the reset circuit</td></tr>
+<tr><td class="mono">W14</td><td>R1 (10 kΩ) bottom leg</td><td>3.3V rail</td><td><span class="swatch s-en"></span>slate</td><td>R1 → 3.3 V rail</td></tr>
+<tr><td class="mono">W15</td><td>S3 breakout EN pin</td><td>C7 (1 µF) top leg</td><td><span class="swatch s-en"></span>slate</td><td>Reset delay cap leg</td></tr>
+<tr><td class="mono">W16</td><td>C7 (1 µF) bottom leg</td><td>GND rail</td><td><span class="swatch s-gnd"></span>black</td><td>C7 → GND</td></tr>
+<tr><td class="mono">W17</td><td>S3 breakout IO0 pin</td><td>R2 (10 kΩ) top leg</td><td><span class="swatch s-io0"></span>purple</td><td>IO0 external pull-up</td></tr>
+<tr><td class="mono">W18</td><td>R2 (10 kΩ) bottom leg</td><td>3.3V rail</td><td><span class="swatch s-io0"></span>purple</td><td>R2 → 3.3 V rail</td></tr>
+</tbody>
+</table>
+
+<h2>Component reference</h2>
+<table>
+<thead>
+<tr><th class="mono">Ref</th><th>Value</th><th>Type</th><th>Placement</th><th>Purpose</th></tr>
+</thead>
+<tbody>
+<tr><td class="mono">D1</td><td>1N5819 (or SS14 / 1N5817)</td><td>Schottky diode</td><td>In series with W1 (band → 5V rail)</td><td>Reverse-polarity protection (~0.3 V drop)</td></tr>
+<tr><td class="mono">C1</td><td>100 µF (or 220 µF)</td><td>Electrolytic</td><td>5V rail ↔ GND rail, near W1b entry</td><td>Bulk — absorbs ribbon inductance + TX transients</td></tr>
+<tr><td class="mono">C2</td><td>10 µF</td><td>Electrolytic</td><td>C5 local 3V3 trace ↔ GND rail</td><td>Local bulk on C5's onboard-regulated 3V3</td></tr>
+<tr><td class="mono">C3</td><td>22 µF</td><td>Electrolytic</td><td>3.3V rail ↔ GND rail, near the S3</td><td>WROOM-1 minimum bulk (Espressif spec)</td></tr>
+<tr><td class="mono">C4</td><td>100 nF</td><td>Ceramic MLCC</td><td>5V rail ↔ GND rail, paired with C1</td><td>HF decoupling on the 5 V rail</td></tr>
+<tr><td class="mono">C5</td><td>100 nF</td><td>Ceramic MLCC</td><td>C5 local 3V3 trace ↔ GND rail</td><td>HF decoupling on C5 3V3 (paired with C2)</td></tr>
+<tr><td class="mono">C6</td><td>100 nF</td><td>Ceramic MLCC</td><td>3.3V rail ↔ GND rail (paired with C3)</td><td>HF decoupling on the S3 3V3</td></tr>
+<tr><td class="mono">C7</td><td>1 µF</td><td>Ceramic MLCC</td><td>S3 EN ↔ GND rail</td><td>Power-on reset delay (~10 ms RC with R1)</td></tr>
+<tr><td class="mono">R1</td><td>10 kΩ</td><td>1/4 W resistor</td><td>Between S3 EN and 3.3V rail</td><td>EN pull-up (per Espressif reset spec)</td></tr>
+<tr><td class="mono">R2</td><td>10 kΩ</td><td>1/4 W resistor</td><td>Between S3 IO0 and 3.3V rail</td><td>External IO0 pull-up (breadboard reliability)</td></tr>
+</tbody>
+</table>
+
+<h2>Pre-power-on checklist (do before enabling Flipper 5 V)</h2>
+<ol class="check">
+<li>Visually count all 19 wires against the table above — any wire not on the list → remove.</li>
+<li>Electrolytic polarity: stripe/short leg of C1, C2, C3 points at GND.</li>
+<li>D1 Schottky orientation: banded end (cathode) faces the 5 V rail; unbanded end (anode) faces Flipper Pin 1.</li>
+<li>Verify AMS1117 pinout with DMM continuity — never trust silkscreen alone.</li>
+<li>Inspect AMS1117 output-cap type: if only MLCC ceramic on the output, physically place C3 directly across AMS1117 OUT → GND pins to prevent LDO oscillation.</li>
+<li>Short check (power off): DMM continuity — 5V rail ↔ GND rail no short; 3V3 rail ↔ GND rail no short.</li>
+<li>S3 EN pin: DMM in ohms — EN → 3V3 rail ≈ 10 kΩ. EN → GND starts low (C7 charging) then climbs past 1 MΩ within seconds — that's normal.</li>
+<li>S3 IO0 pin: DMM in ohms — IO0 → 3V3 rail ≈ 10 kΩ. IO0 → GND ≈ open.</li>
+<li>Flipper 5 V output OFF: it's disabled by default — keep it off until all checks pass.</li>
+<li>Confirm the old GPIO0→GND flashing jumper has been removed from the S3.</li>
+<li>Flipper battery ≥ 80% charge (low battery + radio TX = Flipper brownout risk).</li>
+</ol>
+
+<div class="note"><strong>Operational rule:</strong> do not fire Marauder deauth/beacon flood simultaneously with Ghost ESP BLE spam. Worst-case dual-radio TX (~900 mA–1.1 A) exceeds Flipper's 5 V budget (~800 mA peak). Sequential use, or one TXing while the other scans, is fine.</div>
+
+<h2>Wardriving add-on — GPS + microSD breadboard wiring</h2>
+<p style="color:#475569;font-size:13px;margin:4px 0 14px 0;max-width:1200px;line-height:1.5;">
+  Adds a <strong>NEO-M8N GPS</strong> (UART1 on S3 IO4/IO5) and a <strong>microSD module</strong> (SPI2 on S3 IO10–IO13) for wardriving — PCAP capture + WiGLE CSV export through Ghost ESP Revival. Both modules attach to the <em>S3 only</em>; the C5/Marauder side is untouched. GPS pulls from the existing 3.3 V rail (AMS1117 OUT); SD pulls from the 5 V rail (post-Schottky) so write spikes don't yank the S3's 3.3 V supply.
+</p>
+
+<div class="diagram-frame">
+<svg viewBox="0 0 1800 900" role="img" aria-labelledby="addonSvgTitle addonSvgDesc" xmlns="http://www.w3.org/2000/svg">
+<title id="addonSvgTitle">Wardriving add-on — GPS + microSD breadboard wiring</title>
+<desc id="addonSvgDesc">NEO-M8N GPS via UART1 (IO4/IO5) and microSD via SPI2 (IO10-IO13) on the ESP32-S3, sharing the existing breadboard 3V3, 5V, and GND rails.</desc>
+
+<!-- Rails -->
+<rect x="60" y="80" width="1680" height="14" fill="#dc2626" rx="3"/>
+<text x="80" y="74" font-size="13" font-weight="700" fill="#7f1d1d">5 V rail (post-Schottky, from C1) — feeds microSD VCC</text>
+
+<rect x="60" y="160" width="1680" height="14" fill="#f97316" rx="3"/>
+<text x="80" y="154" font-size="13" font-weight="700" fill="#9a3412">3.3 V rail (AMS1117 OUT) — feeds NEO-M8N VCC + S3</text>
+
+<rect x="60" y="780" width="1680" height="14" fill="#111827" rx="3"/>
+<text x="80" y="810" font-size="13" font-weight="700" fill="#111827">GND rail (common return)</text>
+
+<!-- NEO-M8N module -->
+<g transform="translate(120, 280)">
+  <rect width="280" height="320" fill="#fef3c7" stroke="#92400e" stroke-width="2" rx="6"/>
+  <text x="140" y="22" font-size="14" font-weight="700" text-anchor="middle" fill="#7c2d12">NEO-M8N GPS</text>
+  <text x="140" y="40" font-size="11" text-anchor="middle" fill="#78350f">u-blox NEO-M8N · 3.3 V · ~23 mA avg</text>
+
+  <circle cx="60" cy="80" r="6" fill="#f97316" stroke="#1e293b"/>
+  <text x="76" y="84" font-size="12" font-weight="600" fill="#0f172a">VCC</text>
+
+  <circle cx="60" cy="120" r="6" fill="#111827" stroke="#1e293b"/>
+  <text x="76" y="124" font-size="12" font-weight="600" fill="#0f172a">GND</text>
+
+  <circle cx="60" cy="160" r="6" fill="#ca8a04" stroke="#1e293b"/>
+  <text x="76" y="164" font-size="12" font-weight="600" fill="#0f172a">TX  → S3 IO4</text>
+
+  <circle cx="60" cy="200" r="6" fill="#16a34a" stroke="#1e293b"/>
+  <text x="76" y="204" font-size="12" font-weight="600" fill="#0f172a">RX  ← S3 IO5</text>
+
+  <circle cx="60" cy="240" r="6" fill="#94a3b8" stroke="#1e293b"/>
+  <text x="76" y="244" font-size="12" fill="#475569">PPS  (n/c)</text>
+
+  <rect x="20" y="270" width="240" height="40" fill="white" stroke="#475569" stroke-dasharray="3,3" rx="3"/>
+  <text x="140" y="295" font-size="11" text-anchor="middle" fill="#1e293b">C8 100 nF ∥ C9 10 µF · VCC↔GND</text>
+</g>
+
+<!-- ESP32-S3 focused view -->
+<g transform="translate(720, 220)">
+  <rect width="380" height="500" fill="#dbeafe" stroke="#1e3a8a" stroke-width="2" rx="6"/>
+  <text x="190" y="22" font-size="14" font-weight="700" text-anchor="middle" fill="#1e3a8a">ESP32-S3-WROOM-1-N16R8</text>
+  <text x="190" y="40" font-size="11" text-anchor="middle" fill="#1e40af">Free GPIOs in use: IO4, IO5, IO10–IO13</text>
+
+  <!-- Top: 3V3 + GND tap from existing wiring -->
+  <circle cx="160" cy="78" r="6" fill="#f97316" stroke="#1e293b"/>
+  <text x="160" y="62" font-size="11" font-weight="600" fill="#0f172a" text-anchor="middle">3V3 (W5)</text>
+
+  <circle cx="220" cy="78" r="6" fill="#111827" stroke="#1e293b"/>
+  <text x="220" y="62" font-size="11" font-weight="600" fill="#0f172a" text-anchor="middle">GND (W10)</text>
+
+  <!-- Left side: UART1 to GPS -->
+  <circle cx="6" cy="74" r="6" fill="#ca8a04" stroke="#1e293b"/>
+  <text x="20" y="78" font-size="11" font-weight="600" fill="#0f172a">IO4  (UART1 RX) ←</text>
+
+  <circle cx="6" cy="114" r="6" fill="#16a34a" stroke="#1e293b"/>
+  <text x="20" y="118" font-size="11" font-weight="600" fill="#0f172a">IO5  (UART1 TX) →</text>
+
+  <!-- Right side: SPI2 to SD -->
+  <circle cx="376" cy="154" r="6" fill="#be123c" stroke="#1e293b"/>
+  <text x="370" y="158" font-size="11" font-weight="600" fill="#0f172a" text-anchor="end">IO10 (SD CS)  →</text>
+
+  <circle cx="376" cy="194" r="6" fill="#2563eb" stroke="#1e293b"/>
+  <text x="370" y="198" font-size="11" font-weight="600" fill="#0f172a" text-anchor="end">IO11 (SD MOSI) →</text>
+
+  <circle cx="376" cy="234" r="6" fill="#0891b2" stroke="#1e293b"/>
+  <text x="370" y="238" font-size="11" font-weight="600" fill="#0f172a" text-anchor="end">IO12 (SD SCK)  →</text>
+
+  <circle cx="376" cy="274" r="6" fill="#d946ef" stroke="#1e293b"/>
+  <text x="370" y="278" font-size="11" font-weight="600" fill="#0f172a" text-anchor="end">IO13 (SD MISO) ←</text>
+
+  <!-- Pre-existing wiring reminder -->
+  <rect x="20" y="380" width="340" height="100" fill="#f1f5f9" stroke="#94a3b8" stroke-width="1" rx="4"/>
+  <text x="190" y="400" font-size="11" font-weight="700" text-anchor="middle" fill="#334155">Pre-existing wiring (do not duplicate)</text>
+  <text x="190" y="420" font-size="10" text-anchor="middle" fill="#475569">EN ↔ R1/C7 (W13–W16) — power-on reset</text>
+  <text x="190" y="438" font-size="10" text-anchor="middle" fill="#475569">IO0 ↔ R2 (W17–W18) — boot strap pull-up</text>
+  <text x="190" y="456" font-size="10" text-anchor="middle" fill="#475569">3V3 ← AMS1117 (W5), GND → rail (W10)</text>
+  <text x="190" y="472" font-size="10" text-anchor="middle" fill="#475569">UART0 (TX/RX) — leave disconnected</text>
+</g>
+
+<!-- microSD module -->
+<g transform="translate(1400, 280)">
+  <rect width="280" height="320" fill="#dcfce7" stroke="#166534" stroke-width="2" rx="6"/>
+  <text x="140" y="22" font-size="14" font-weight="700" text-anchor="middle" fill="#14532d">microSD module</text>
+  <text x="140" y="40" font-size="11" text-anchor="middle" fill="#166534">AMS1117-3.3 + 74LVC125 (5 V tolerant)</text>
+
+  <circle cx="220" cy="80" r="6" fill="#dc2626" stroke="#1e293b"/>
+  <text x="208" y="84" font-size="12" font-weight="600" text-anchor="end" fill="#0f172a">VCC</text>
+
+  <circle cx="220" cy="120" r="6" fill="#111827" stroke="#1e293b"/>
+  <text x="208" y="124" font-size="12" font-weight="600" text-anchor="end" fill="#0f172a">GND</text>
+
+  <circle cx="220" cy="160" r="6" fill="#be123c" stroke="#1e293b"/>
+  <text x="208" y="164" font-size="12" font-weight="600" text-anchor="end" fill="#0f172a">CS  ← IO10</text>
+
+  <circle cx="220" cy="200" r="6" fill="#2563eb" stroke="#1e293b"/>
+  <text x="208" y="204" font-size="12" font-weight="600" text-anchor="end" fill="#0f172a">MOSI ← IO11</text>
+
+  <circle cx="220" cy="240" r="6" fill="#0891b2" stroke="#1e293b"/>
+  <text x="208" y="244" font-size="12" font-weight="600" text-anchor="end" fill="#0f172a">SCK ← IO12</text>
+
+  <circle cx="220" cy="280" r="6" fill="#d946ef" stroke="#1e293b"/>
+  <text x="208" y="284" font-size="12" font-weight="600" text-anchor="end" fill="#0f172a">MISO → IO13</text>
+
+  <rect x="20" y="270" width="240" height="40" fill="white" stroke="#475569" stroke-dasharray="3,3" rx="3"/>
+  <text x="140" y="295" font-size="11" text-anchor="middle" fill="#1e293b">C10 100 nF ∥ C11 10 µF · VCC↔GND</text>
+</g>
+
+<!-- W19: GPS VCC ← 3.3V rail -->
+<path d="M 180 360 L 180 174" fill="none" stroke="#f97316" stroke-width="3"><title>W19 — 3.3 V rail → NEO-M8N VCC</title></path>
+<circle cx="180" cy="174" r="4" fill="#f97316"/>
+<text x="190" y="270" font-size="12" font-weight="700" fill="#9a3412">W19</text>
+
+<!-- W20: GPS GND → GND rail -->
+<path d="M 180 400 L 180 780" fill="none" stroke="#111827" stroke-width="3"><title>W20 — NEO-M8N GND → GND rail</title></path>
+<circle cx="180" cy="780" r="4" fill="#111827"/>
+<text x="190" y="650" font-size="12" font-weight="700" fill="#111827">W20</text>
+
+<!-- W21: GPS TX → S3 IO4 -->
+<path d="M 180 440 L 600 440 L 600 294 L 720 294" fill="none" stroke="#ca8a04" stroke-width="3"><title>W21 — NEO-M8N TX → S3 IO4 (UART1 RX)</title></path>
+<text x="380" y="432" font-size="12" font-weight="700" fill="#854d0e">W21 — UART1 RX (IO4)</text>
+
+<!-- W22: S3 IO5 → GPS RX -->
+<path d="M 180 480 L 580 480 L 580 334 L 720 334" fill="none" stroke="#16a34a" stroke-width="3"><title>W22 — S3 IO5 (UART1 TX) → NEO-M8N RX</title></path>
+<text x="380" y="472" font-size="12" font-weight="700" fill="#15803d">W22 — UART1 TX (IO5)</text>
+
+<!-- W23: SD VCC ← 5V rail -->
+<path d="M 1620 360 L 1620 94" fill="none" stroke="#dc2626" stroke-width="3"><title>W23 — 5 V rail → microSD VCC</title></path>
+<circle cx="1620" cy="94" r="4" fill="#dc2626"/>
+<text x="1630" y="220" font-size="12" font-weight="700" fill="#7f1d1d">W23</text>
+
+<!-- W24: SD GND → GND rail -->
+<path d="M 1620 400 L 1620 780" fill="none" stroke="#111827" stroke-width="3"><title>W24 — microSD GND → GND rail</title></path>
+<circle cx="1620" cy="780" r="4" fill="#111827"/>
+<text x="1630" y="650" font-size="12" font-weight="700" fill="#111827">W24</text>
+
+<!-- W25: SD CS ← S3 IO10 -->
+<path d="M 1620 440 L 1280 440 L 1280 374 L 1100 374" fill="none" stroke="#be123c" stroke-width="3"><title>W25 — S3 IO10 → microSD CS</title></path>
+<text x="1310" y="432" font-size="12" font-weight="700" fill="#9f1239">W25 — SD CS (IO10)</text>
+
+<!-- W26: SD MOSI ← S3 IO11 -->
+<path d="M 1620 480 L 1260 480 L 1260 414 L 1100 414" fill="none" stroke="#2563eb" stroke-width="3"><title>W26 — S3 IO11 → microSD MOSI</title></path>
+<text x="1310" y="472" font-size="12" font-weight="700" fill="#1d4ed8">W26 — MOSI (IO11)</text>
+
+<!-- W27: SD SCK ← S3 IO12 -->
+<path d="M 1620 520 L 1240 520 L 1240 454 L 1100 454" fill="none" stroke="#0891b2" stroke-width="3"><title>W27 — S3 IO12 → microSD SCK</title></path>
+<text x="1310" y="512" font-size="12" font-weight="700" fill="#155e75">W27 — SCK (IO12)</text>
+
+<!-- W28: SD MISO → S3 IO13 -->
+<path d="M 1620 560 L 1220 560 L 1220 494 L 1100 494" fill="none" stroke="#d946ef" stroke-width="3"><title>W28 — microSD MISO → S3 IO13</title></path>
+<text x="1310" y="552" font-size="12" font-weight="700" fill="#a21caf">W28 — MISO (IO13)</text>
+
+<!-- Existing 3V3 + GND taps (dashed, for context) -->
+<path d="M 880 174 L 880 298" fill="none" stroke="#f97316" stroke-width="2" stroke-dasharray="4,4"/>
+<text x="890" y="240" font-size="10" fill="#9a3412" font-style="italic">W5 (existing)</text>
+
+<path d="M 940 298 L 940 780" fill="none" stroke="#111827" stroke-width="2" stroke-dasharray="4,4"/>
+<text x="950" y="540" font-size="10" fill="#111827" font-style="italic">W10 (existing)</text>
+
+<!-- Antenna keep-out advisory -->
+<g transform="translate(80, 660)">
+  <rect width="320" height="90" fill="#fef9c3" stroke="#a16207" stroke-width="1.5" stroke-dasharray="6,4" rx="4"/>
+  <text x="160" y="22" font-size="12" font-weight="700" text-anchor="middle" fill="#713f12">M8N antenna keep-out</text>
+  <text x="160" y="42" font-size="11" text-anchor="middle" fill="#854d0e">Patch antenna face up,</text>
+  <text x="160" y="58" font-size="11" text-anchor="middle" fill="#854d0e">≥30 mm from C5/S3 PCBs;</text>
+  <text x="160" y="74" font-size="11" text-anchor="middle" fill="#854d0e">prevents L1 (1575.42 MHz) noise</text>
+</g>
+
+<!-- Legend -->
+<g transform="translate(1180, 660)">
+  <rect width="540" height="90" fill="#f8fafc" stroke="#94a3b8" stroke-width="1" rx="4"/>
+  <text x="270" y="22" font-size="12" font-weight="700" text-anchor="middle" fill="#1e293b">Legend</text>
+  <rect x="20" y="34" width="22" height="8" fill="#dc2626"/><text x="50" y="42" font-size="11" fill="#0f172a">5 V (W23)</text>
+  <rect x="130" y="34" width="22" height="8" fill="#f97316"/><text x="160" y="42" font-size="11" fill="#0f172a">3.3 V (W19)</text>
+  <rect x="250" y="34" width="22" height="8" fill="#111827"/><text x="280" y="42" font-size="11" fill="#0f172a">GND (W20/W24)</text>
+  <rect x="400" y="34" width="22" height="8" fill="#ca8a04"/><text x="430" y="42" font-size="11" fill="#0f172a">UART RX W21</text>
+  <rect x="20" y="56" width="22" height="8" fill="#16a34a"/><text x="50" y="64" font-size="11" fill="#0f172a">UART TX W22</text>
+  <rect x="130" y="56" width="22" height="8" fill="#be123c"/><text x="160" y="64" font-size="11" fill="#0f172a">SPI CS (W25)</text>
+  <rect x="250" y="56" width="22" height="8" fill="#2563eb"/><text x="280" y="64" font-size="11" fill="#0f172a">MOSI (W26)</text>
+  <rect x="370" y="56" width="22" height="8" fill="#0891b2"/><text x="400" y="64" font-size="11" fill="#0f172a">SCK (W27)</text>
+  <rect x="460" y="56" width="22" height="8" fill="#d946ef"/><text x="490" y="64" font-size="11" fill="#0f172a">MISO (W28)</text>
+</g>
+
+</svg>
+</div>
+
+<h2>Add-on wire reference (W19 – W28)</h2>
+<table>
+<thead>
+<tr><th class="mono">#</th><th>From</th><th>To</th><th>Color</th><th>Purpose</th></tr>
+</thead>
+<tbody>
+<tr><td class="mono">W19</td><td>3.3V rail</td><td>NEO-M8N VCC</td><td><span class="swatch s-3v3"></span>orange</td><td>GPS power (~23 mA avg, ~67 mA peak)</td></tr>
+<tr><td class="mono">W20</td><td>NEO-M8N GND</td><td>GND rail</td><td><span class="swatch s-gnd"></span>black</td><td>GPS return</td></tr>
+<tr><td class="mono">W21</td><td>NEO-M8N TX</td><td>S3 IO4 (UART1 RX)</td><td><span class="swatch s-tx"></span>yellow</td><td>NMEA stream, 9600 8N1 → S3</td></tr>
+<tr><td class="mono">W22</td><td>S3 IO5 (UART1 TX)</td><td>NEO-M8N RX</td><td><span class="swatch s-rx"></span>green</td><td>For u-blox UBX config / baud change</td></tr>
+<tr><td class="mono">W23</td><td>5V rail (post-D1)</td><td>microSD VCC</td><td><span class="swatch s-5v"></span>red</td><td>SD power into module's onboard AMS1117</td></tr>
+<tr><td class="mono">W24</td><td>microSD GND</td><td>GND rail</td><td><span class="swatch s-gnd"></span>black</td><td>SD return</td></tr>
+<tr><td class="mono">W25</td><td>S3 IO10</td><td>microSD CS</td><td><span class="swatch s-spi-cs"></span>rose</td><td>SPI2 chip-select</td></tr>
+<tr><td class="mono">W26</td><td>S3 IO11</td><td>microSD MOSI</td><td><span class="swatch s-spi-mosi"></span>blue</td><td>SPI2 master-out</td></tr>
+<tr><td class="mono">W27</td><td>S3 IO12</td><td>microSD SCK</td><td><span class="swatch s-spi-sck"></span>cyan</td><td>SPI2 clock</td></tr>
+<tr><td class="mono">W28</td><td>microSD MISO</td><td>S3 IO13</td><td><span class="swatch s-spi-miso"></span>fuchsia</td><td>SPI2 master-in (returns 3.3 V via 74LVC125)</td></tr>
+</tbody>
+</table>
+
+<h2>Add-on component reference (C8 – C11)</h2>
+<table>
+<thead>
+<tr><th class="mono">Ref</th><th>Value</th><th>Type</th><th>Placement</th><th>Purpose</th></tr>
+</thead>
+<tbody>
+<tr><td class="mono">C8</td><td>100 nF</td><td>Ceramic MLCC</td><td>NEO-M8N VCC ↔ GND, at the module</td><td>HF decoupling on GPS supply</td></tr>
+<tr><td class="mono">C9</td><td>10 µF</td><td>Electrolytic</td><td>NEO-M8N VCC ↔ GND, at the module</td><td>Bulk for cold-fix current peak</td></tr>
+<tr><td class="mono">C10</td><td>100 nF</td><td>Ceramic MLCC</td><td>microSD VCC ↔ GND, at the module</td><td>HF decoupling on SD supply</td></tr>
+<tr><td class="mono">C11</td><td>10 µF</td><td>Electrolytic</td><td>microSD VCC ↔ GND, at the module</td><td>Critical — absorbs ~100 mA SD write peaks</td></tr>
+</tbody>
+</table>
+
+<div class="note"><strong>Ghost ESP Revival config:</strong> after wiring, connect to <code>GhostNet</code> AP → <code>http://192.168.4.1</code> → set <strong>GPS RX pin = 4</strong> in NVS settings and reboot the S3. SD pins (IO10–IO13) are board-template / sdkconfig-defined — confirm against your firmware build before powering on.</div>
+
+
+
+
+<h2>Protoboard layout (soldered) — top-down view</h2>
+<p style="color:#475569;font-size:13px;margin:4px 0 14px 0;max-width:1200px;line-height:1.5;">
+  Same electrical net as the breadboard above, but laid out for a soldered perfboard. Modules sit in fixed positions; jumper wires (under the board) route between solder pads. Decoupling caps sit on the top side <em>directly next to</em> the module they protect — never on a rail far away. The patch antenna on the NEO-M8N is held off the C5/S3 PCBs by ≥30 mm to keep digital noise off the L1 GPS band.
+</p>
+
+<div class="diagram-frame">
+<svg viewBox="0 0 1800 1020" role="img" aria-labelledby="protoSvgTitle protoSvgDesc" xmlns="http://www.w3.org/2000/svg">
+<title id="protoSvgTitle">Protoboard layout — GPS + microSD soldered position</title>
+<desc id="protoSvgDesc">Top-down view of the soldered protoboard with the NEO-M8N GPS and microSD modules added next to the ESP32-S3, showing solder pad positions, wire traces (W19-W28), decoupling cap placement, and the M8N antenna keep-out.</desc>
+
+<defs>
+  <pattern id="perfgrid" width="14" height="14" patternUnits="userSpaceOnUse">
+    <circle cx="7" cy="7" r="1.4" fill="#a8a29e" opacity="0.55"/>
+  </pattern>
+  <radialGradient id="solderpad">
+    <stop offset="0%" stop-color="#fde68a"/>
+    <stop offset="100%" stop-color="#a16207"/>
+  </radialGradient>
+</defs>
+
+<rect x="40" y="40" width="1720" height="940" fill="#fef3c7" stroke="#92400e" stroke-width="3" rx="8"/>
+<rect x="40" y="40" width="1720" height="940" fill="url(#perfgrid)"/>
+<text x="60" y="76" font-size="14" font-weight="700" fill="#7c2d12">Protoboard add-on layout — modules on top side, wires on underside</text>
+
+<rect x="60" y="900" width="1680" height="60" fill="#1f2937" stroke="#111827" stroke-width="2" rx="3"/>
+<text x="900" y="938" font-size="14" font-weight="700" text-anchor="middle" fill="#e5e7eb">Common GND plane (all black wires return here)</text>
+
+<g transform="translate(60, 200)">
+  <rect width="140" height="220" fill="#fef9c3" stroke="#a16207" stroke-width="1.5" rx="4"/>
+  <text x="70" y="-8" font-size="11" font-weight="700" text-anchor="middle" fill="#713f12">power entry pads</text>
+  <text x="70" y="22" font-size="11" font-weight="600" text-anchor="middle" fill="#9a3412">5 V (post-D1)</text>
+  <circle cx="70" cy="40" r="9" fill="url(#solderpad)" stroke="#7c2d12"/>
+  <text x="70" y="80" font-size="11" font-weight="600" text-anchor="middle" fill="#9a3412">3.3 V</text>
+  <circle cx="70" cy="98" r="9" fill="url(#solderpad)" stroke="#7c2d12"/>
+  <text x="70" y="138" font-size="11" font-weight="600" text-anchor="middle" fill="#0f172a">GND</text>
+  <circle cx="70" cy="156" r="9" fill="url(#solderpad)" stroke="#7c2d12"/>
+  <text x="70" y="200" font-size="9" text-anchor="middle" fill="#475569">from C1 / D1 / AMS1117</text>
+</g>
+
+<g transform="translate(440, 380)">
+  <rect width="120" height="70" fill="#cffafe" stroke="#0e7490" stroke-width="2" rx="3"/>
+  <text x="60" y="20" font-size="11" font-weight="700" text-anchor="middle" fill="#155e75">AMS1117-3.3</text>
+  <circle cx="20" cy="50" r="6" fill="url(#solderpad)" stroke="#1e293b"/>
+  <text x="20" y="64" font-size="9" text-anchor="middle" fill="#0f172a">IN</text>
+  <circle cx="60" cy="50" r="6" fill="url(#solderpad)" stroke="#1e293b"/>
+  <text x="60" y="64" font-size="9" text-anchor="middle" fill="#0f172a">GND</text>
+  <circle cx="100" cy="50" r="6" fill="url(#solderpad)" stroke="#1e293b"/>
+  <text x="100" y="64" font-size="9" text-anchor="middle" fill="#0f172a">OUT</text>
+</g>
+
+<g transform="translate(640, 320)">
+  <rect width="320" height="380" fill="#dbeafe" stroke="#1e3a8a" stroke-width="2.5" rx="4"/>
+  <text x="160" y="22" font-size="14" font-weight="700" text-anchor="middle" fill="#1e3a8a">ESP32-S3-WROOM-1-N16R8</text>
+  <text x="160" y="40" font-size="11" text-anchor="middle" fill="#1e40af">on breakout adapter</text>
+  <circle cx="80" cy="80" r="7" fill="url(#solderpad)" stroke="#1e293b"/>
+  <text x="80" y="62" font-size="10" font-weight="600" fill="#0f172a" text-anchor="middle">3V3</text>
+  <circle cx="160" cy="80" r="7" fill="url(#solderpad)" stroke="#1e293b"/>
+  <text x="160" y="62" font-size="10" font-weight="600" fill="#0f172a" text-anchor="middle">GND</text>
+  <circle cx="240" cy="80" r="7" fill="url(#solderpad)" stroke="#1e293b"/>
+  <text x="240" y="62" font-size="10" font-weight="600" fill="#0f172a" text-anchor="middle">EN</text>
+  <circle cx="14" cy="160" r="7" fill="url(#solderpad)" stroke="#1e293b"/>
+  <text x="32" y="164" font-size="10" font-weight="600" fill="#0f172a">IO4 (RX1)</text>
+  <circle cx="14" cy="200" r="7" fill="url(#solderpad)" stroke="#1e293b"/>
+  <text x="32" y="204" font-size="10" font-weight="600" fill="#0f172a">IO5 (TX1)</text>
+  <circle cx="306" cy="160" r="7" fill="url(#solderpad)" stroke="#1e293b"/>
+  <text x="288" y="164" font-size="10" font-weight="600" fill="#0f172a" text-anchor="end">IO10 CS</text>
+  <circle cx="306" cy="200" r="7" fill="url(#solderpad)" stroke="#1e293b"/>
+  <text x="288" y="204" font-size="10" font-weight="600" fill="#0f172a" text-anchor="end">IO11 MOSI</text>
+  <circle cx="306" cy="240" r="7" fill="url(#solderpad)" stroke="#1e293b"/>
+  <text x="288" y="244" font-size="10" font-weight="600" fill="#0f172a" text-anchor="end">IO12 SCK</text>
+  <circle cx="306" cy="280" r="7" fill="url(#solderpad)" stroke="#1e293b"/>
+  <text x="288" y="284" font-size="10" font-weight="600" fill="#0f172a" text-anchor="end">IO13 MISO</text>
+  <rect x="20" y="320" width="280" height="48" fill="#f1f5f9" stroke="#94a3b8" stroke-width="1" rx="4"/>
+  <text x="160" y="340" font-size="10" font-style="italic" text-anchor="middle" fill="#475569">existing: R1/R2 (10 kΩ), C7 (1 µF),</text>
+  <text x="160" y="356" font-size="10" font-style="italic" text-anchor="middle" fill="#475569">C3 (22 µF) + C6 (100 nF) bulk</text>
+</g>
+
+<g transform="translate(1200, 120)">
+  <rect width="280" height="280" fill="#fef3c7" stroke="#92400e" stroke-width="2.5" rx="4"/>
+  <rect x="60" y="50" width="160" height="120" fill="#9ca3af" stroke="#374151" stroke-width="1.5" rx="3"/>
+  <text x="140" y="115" font-size="11" font-weight="700" text-anchor="middle" fill="#111827">25×25 mm patch</text>
+  <text x="140" y="22" font-size="13" font-weight="700" text-anchor="middle" fill="#7c2d12">NEO-M8N module</text>
+  <circle cx="60" cy="240" r="7" fill="url(#solderpad)" stroke="#1e293b"/>
+  <text x="60" y="262" font-size="10" font-weight="600" text-anchor="middle" fill="#0f172a">VCC</text>
+  <circle cx="100" cy="240" r="7" fill="url(#solderpad)" stroke="#1e293b"/>
+  <text x="100" y="262" font-size="10" font-weight="600" text-anchor="middle" fill="#0f172a">GND</text>
+  <circle cx="140" cy="240" r="7" fill="url(#solderpad)" stroke="#1e293b"/>
+  <text x="140" y="262" font-size="10" font-weight="600" text-anchor="middle" fill="#0f172a">TX</text>
+  <circle cx="180" cy="240" r="7" fill="url(#solderpad)" stroke="#1e293b"/>
+  <text x="180" y="262" font-size="10" font-weight="600" text-anchor="middle" fill="#0f172a">RX</text>
+  <circle cx="220" cy="240" r="7" fill="url(#solderpad)" stroke="#1e293b" opacity="0.4"/>
+  <text x="220" y="262" font-size="10" font-weight="600" text-anchor="middle" fill="#475569">PPS</text>
+</g>
+
+<rect x="1180" y="100" width="320" height="120" fill="none" stroke="#a16207" stroke-width="2" stroke-dasharray="8,4" rx="6"/>
+<text x="1340" y="92" font-size="11" font-weight="700" fill="#713f12" text-anchor="middle">≥30 mm clearance from C5/S3 (L1 1575 MHz keep-out)</text>
+
+<g transform="translate(1190, 420)">
+  <rect width="130" height="58" fill="white" stroke="#475569" stroke-width="1.5" rx="3"/>
+  <text x="65" y="22" font-size="11" font-weight="700" text-anchor="middle" fill="#1e293b">C8 100 nF</text>
+  <text x="65" y="44" font-size="11" font-weight="700" text-anchor="middle" fill="#1e293b">C9 10 µF</text>
+</g>
+
+<g transform="translate(1200, 640)">
+  <rect width="320" height="240" fill="#dcfce7" stroke="#166534" stroke-width="2.5" rx="4"/>
+  <text x="160" y="22" font-size="13" font-weight="700" text-anchor="middle" fill="#14532d">microSD module</text>
+  <text x="160" y="40" font-size="10" text-anchor="middle" fill="#166534">AMS1117 + 74LVC125 (5 V tolerant)</text>
+  <rect x="20" y="60" width="120" height="160" fill="#94a3b8" stroke="#374151" stroke-width="1.5" rx="2"/>
+  <text x="80" y="145" font-size="10" font-weight="600" text-anchor="middle" fill="#111827">SD slot</text>
+  <circle cx="290" cy="70" r="7" fill="url(#solderpad)" stroke="#1e293b"/>
+  <text x="276" y="74" font-size="10" font-weight="600" text-anchor="end" fill="#0f172a">VCC</text>
+  <circle cx="290" cy="100" r="7" fill="url(#solderpad)" stroke="#1e293b"/>
+  <text x="276" y="104" font-size="10" font-weight="600" text-anchor="end" fill="#0f172a">GND</text>
+  <circle cx="290" cy="130" r="7" fill="url(#solderpad)" stroke="#1e293b"/>
+  <text x="276" y="134" font-size="10" font-weight="600" text-anchor="end" fill="#0f172a">CS</text>
+  <circle cx="290" cy="160" r="7" fill="url(#solderpad)" stroke="#1e293b"/>
+  <text x="276" y="164" font-size="10" font-weight="600" text-anchor="end" fill="#0f172a">MOSI</text>
+  <circle cx="290" cy="190" r="7" fill="url(#solderpad)" stroke="#1e293b"/>
+  <text x="276" y="194" font-size="10" font-weight="600" text-anchor="end" fill="#0f172a">SCK</text>
+  <circle cx="290" cy="220" r="7" fill="url(#solderpad)" stroke="#1e293b"/>
+  <text x="276" y="224" font-size="10" font-weight="600" text-anchor="end" fill="#0f172a">MISO</text>
+</g>
+
+<g transform="translate(1380, 720)">
+  <rect width="100" height="58" fill="white" stroke="#475569" stroke-width="1.5" rx="3"/>
+  <text x="50" y="22" font-size="11" font-weight="700" text-anchor="middle" fill="#1e293b">C10 100 nF</text>
+  <text x="50" y="44" font-size="11" font-weight="700" text-anchor="middle" fill="#1e293b">C11 10 µF</text>
+</g>
+
+<path d="M 130 240 L 460 240 L 460 430" fill="none" stroke="#dc2626" stroke-width="2" stroke-dasharray="5,4"/>
+<text x="290" y="232" font-size="10" font-style="italic" fill="#7f1d1d">W3 (existing)</text>
+
+<path d="M 540 430 L 540 280 L 720 280 L 720 400" fill="none" stroke="#f97316" stroke-width="2" stroke-dasharray="5,4"/>
+<text x="610" y="272" font-size="10" font-style="italic" fill="#9a3412">W4/W5 (existing)</text>
+
+<path d="M 500 430 L 500 900" fill="none" stroke="#111827" stroke-width="2" stroke-dasharray="5,4"/>
+<path d="M 800 400 L 800 900" fill="none" stroke="#111827" stroke-width="2" stroke-dasharray="5,4"/>
+<text x="810" y="700" font-size="10" font-style="italic" fill="#111827">W10 (existing)</text>
+<path d="M 130 356 L 130 900" fill="none" stroke="#111827" stroke-width="2" stroke-dasharray="5,4"/>
+
+<path d="M 540 280 L 1260 280 L 1260 360" fill="none" stroke="#f97316" stroke-width="3"><title>W19 — 3.3 V (AMS1117 OUT) → NEO-M8N VCC</title></path>
+<text x="900" y="272" font-size="12" font-weight="700" fill="#9a3412">W19 — 3.3 V to GPS</text>
+
+<path d="M 1300 360 L 1300 900" fill="none" stroke="#111827" stroke-width="3"><title>W20 — NEO-M8N GND → GND plane</title></path>
+<text x="1310" y="600" font-size="12" font-weight="700" fill="#111827">W20</text>
+
+<path d="M 1340 360 L 1340 480 L 654 480" fill="none" stroke="#ca8a04" stroke-width="3"><title>W21 — NEO-M8N TX → S3 IO4 (UART1 RX)</title></path>
+<text x="900" y="472" font-size="12" font-weight="700" fill="#854d0e">W21 — UART1 RX (IO4)</text>
+
+<path d="M 654 520 L 580 520 L 580 580 L 1380 580 L 1380 360" fill="none" stroke="#16a34a" stroke-width="3"><title>W22 — S3 IO5 (UART1 TX) → NEO-M8N RX</title></path>
+<text x="900" y="572" font-size="12" font-weight="700" fill="#15803d">W22 — UART1 TX (IO5)</text>
+
+<path d="M 130 240 L 130 180 L 1490 180 L 1490 710" fill="none" stroke="#dc2626" stroke-width="3"><title>W23 — 5 V (post-D1) → microSD VCC</title></path>
+<text x="900" y="172" font-size="12" font-weight="700" fill="#7f1d1d">W23 — 5 V to SD (post-Schottky)</text>
+
+<path d="M 1490 740 L 1490 900" fill="none" stroke="#111827" stroke-width="3"><title>W24 — microSD GND → GND plane</title></path>
+<text x="1500" y="830" font-size="12" font-weight="700" fill="#111827">W24</text>
+
+<path d="M 946 480 L 1170 480 L 1170 770 L 1490 770" fill="none" stroke="#be123c" stroke-width="3"><title>W25 — S3 IO10 → microSD CS</title></path>
+<text x="1180" y="500" font-size="11" font-weight="700" fill="#9f1239">W25 CS (IO10)</text>
+
+<path d="M 946 520 L 1180 520 L 1180 800 L 1490 800" fill="none" stroke="#2563eb" stroke-width="3"><title>W26 — S3 IO11 → microSD MOSI</title></path>
+<text x="1190" y="540" font-size="11" font-weight="700" fill="#1d4ed8">W26 MOSI (IO11)</text>
+
+<path d="M 946 560 L 1190 560 L 1190 830 L 1490 830" fill="none" stroke="#0891b2" stroke-width="3"><title>W27 — S3 IO12 → microSD SCK</title></path>
+<text x="1200" y="580" font-size="11" font-weight="700" fill="#155e75">W27 SCK (IO12)</text>
+
+<path d="M 1490 860 L 1200 860 L 1200 600 L 946 600" fill="none" stroke="#d946ef" stroke-width="3"><title>W28 — microSD MISO → S3 IO13</title></path>
+<text x="1210" y="620" font-size="11" font-weight="700" fill="#a21caf">W28 MISO (IO13)</text>
+
+<g transform="translate(60, 460)">
+  <rect width="340" height="120" fill="#f0fdf4" stroke="#16a34a" stroke-width="1.5" rx="4"/>
+  <text x="170" y="22" font-size="12" font-weight="700" text-anchor="middle" fill="#14532d">Layout discipline</text>
+  <text x="14" y="42" font-size="11" fill="#0f172a">• Place C8/C9 within ~5 mm of GPS VCC pin.</text>
+  <text x="14" y="58" font-size="11" fill="#0f172a">• Place C10/C11 within ~5 mm of SD VCC pin.</text>
+  <text x="14" y="74" font-size="11" fill="#0f172a">• Route GPS UART pair (W21/W22) parallel,</text>
+  <text x="14" y="90" font-size="11" fill="#0f172a">  ≥5 mm from SPI bus (W25–W28).</text>
+  <text x="14" y="110" font-size="11" font-weight="700" fill="#9f1239">SD VCC must come from 5 V (post-D1), NOT 3.3 V.</text>
+</g>
+
+<g transform="translate(440, 760)">
+  <rect width="700" height="120" fill="#f8fafc" stroke="#94a3b8" stroke-width="1" rx="4"/>
+  <text x="350" y="22" font-size="12" font-weight="700" text-anchor="middle" fill="#1e293b">Wire color legend</text>
+  <rect x="20" y="36" width="22" height="8" fill="#dc2626"/><text x="50" y="44" font-size="11" fill="#0f172a">5 V (W23)</text>
+  <rect x="160" y="36" width="22" height="8" fill="#f97316"/><text x="190" y="44" font-size="11" fill="#0f172a">3.3 V (W19)</text>
+  <rect x="320" y="36" width="22" height="8" fill="#111827"/><text x="350" y="44" font-size="11" fill="#0f172a">GND (W20/W24)</text>
+  <rect x="500" y="36" width="22" height="8" fill="#ca8a04"/><text x="530" y="44" font-size="11" fill="#0f172a">UART RX (W21)</text>
+  <rect x="20" y="62" width="22" height="8" fill="#16a34a"/><text x="50" y="70" font-size="11" fill="#0f172a">UART TX (W22)</text>
+  <rect x="160" y="62" width="22" height="8" fill="#be123c"/><text x="190" y="70" font-size="11" fill="#0f172a">SPI CS (W25)</text>
+  <rect x="320" y="62" width="22" height="8" fill="#2563eb"/><text x="350" y="70" font-size="11" fill="#0f172a">MOSI (W26)</text>
+  <rect x="500" y="62" width="22" height="8" fill="#0891b2"/><text x="530" y="70" font-size="11" fill="#0f172a">SCK (W27)</text>
+  <rect x="20" y="88" width="22" height="8" fill="#d946ef"/><text x="50" y="96" font-size="11" fill="#0f172a">MISO (W28)</text>
+  <line x1="160" y1="92" x2="200" y2="92" stroke="#475569" stroke-width="2" stroke-dasharray="5,4"/><text x="210" y="96" font-size="11" fill="#0f172a">existing wiring (W3–W10, W13–W18)</text>
+</g>
+
+</svg>
+</div>
+
+<div class="note"><strong>Trigger this stage only after the breadboard prototype passes</strong> — do not solder until Stage 1 (GPS fix in Web UI) and Stage 2 (SD mounted, valid PCAP/CSV) are both verified on the breadboard. Once soldered, repeat the pre-power-on checklist before re-enabling Flipper 5 V.</div>
+
+<div class="note" style="margin-top:18px;"><strong>License &amp; legal:</strong> This guide is released for personal, educational, and lawful security-research use. Authors of upstream firmwares, libraries, and apps retain their respective licenses. RF jamming and unauthorized wireless interference are illegal in most jurisdictions (FCC Part 15 in the US, equivalent statutes elsewhere). Use this build only against equipment you own or have explicit written authorization to test.</div>
+
+<div style="margin-top:28px;background:white;border:1px solid #cbd5e1;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,.06);overflow:hidden;font-family:'Segoe UI',system-ui,-apple-system,Arial,sans-serif;">
+
+  <!-- Coin-color gradient top stripe: instant visual cue this is a crypto donation card -->
+  <div style="height:4px;background:linear-gradient(90deg,#f7931a 0%,#f7931a 33.33%,#627eea 33.33%,#627eea 66.66%,#c2a633 66.66%,#c2a633 100%);"></div>
+
+  <div style="padding:18px 22px 22px 22px;">
+
+    <h2 style="font-size:19px;margin:0 0 10px 0;padding-bottom:5px;border-bottom:2px solid #94a3b8;color:#1e293b;">Source of truth</h2>
+
+    <p style="margin:0 0 14px 0;font-size:14px;color:#475569;line-height:1.55;">
+      AmsaOne &mdash; <a href="https://github.com/AmsaOne" style="color:#1e3a8a;text-decoration:none;border-bottom:1px dashed #1e3a8a;">github.com/AmsaOne</a>
+    </p>
+
+    <p style="margin:0 0 6px 0;font-size:13px;color:#475569;line-height:1.6;max-width:780px;">
+      Never expected &mdash; but if these guides and wiring diagrams have been useful to you, donations are always happily accepted.
+    </p>
+
+    <div style="display:flex;flex-direction:column;gap:8px;margin-top:14px;">
+
+      <div style="display:flex;align-items:center;gap:14px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:10px 14px;">
+        <span style="flex-shrink:0;min-width:62px;text-align:center;font-weight:700;font-size:11.5px;letter-spacing:.5px;background:#f7931a;color:#0f172a;padding:5px 9px;border-radius:4px;">BTC</span>
+        <code style="background:transparent;color:#0f172a;font-family:Consolas,'Courier New',monospace;font-size:13px;padding:0;word-break:break-all;user-select:all;">1FW2 p2qn Bkhg z4yw 6xWg yc4L qE2A 6rQ7 m3</code>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:14px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:10px 14px;">
+        <span style="flex-shrink:0;min-width:62px;text-align:center;font-weight:700;font-size:11.5px;letter-spacing:.5px;background:#627eea;color:#f8fafc;padding:5px 9px;border-radius:4px;">ETH</span>
+        <code style="background:transparent;color:#0f172a;font-family:Consolas,'Courier New',monospace;font-size:13px;padding:0;word-break:break-all;user-select:all;">0x45 e7ff 9f3a b4 7d07 1286 0011 e7 7644 7ca3 e890 68</code>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:14px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:10px 14px;">
+        <span style="flex-shrink:0;min-width:62px;text-align:center;font-weight:700;font-size:11.5px;letter-spacing:.5px;background:#c2a633;color:#0f172a;padding:5px 9px;border-radius:4px;">DOGE</span>
+        <code style="background:transparent;color:#0f172a;font-family:Consolas,'Courier New',monospace;font-size:13px;padding:0;word-break:break-all;user-select:all;">DFeU rquC EuAs XjbQ 43Di zKJE 8gHP DLn1 Hp</code>
+      </div>
+
+</div>
+</body>
+</html>
