@@ -13,7 +13,7 @@ If It wasnt already obvious, these guides have been created in an HTML format. P
 Please do not blindly follow these wiring diagrams without double checking all electrical interconnections and components yourself to ensure proper and safe electrical continuity. Electrical circuits of any voltage pose a risk for electrical fires. Always do your own research and due diligence when messing with any kind of electrical circuits. Do not just take anyones word for it when it comes to electrical safety. I am an experienced and licensed Electrician, the guides were created with Claude, however the electrical side of the guides were developed by me with help from other sources cited in the guides and reviewed by Claude with final reviews and edits made by myself. That being said, that does not mean I don't make mistakes some times. This goes for any and all electrical wiring guides from any source. 
 <br>
 <br>
-<b>Source of truth: AmsaOne @ https://github.com/AmsaOne </b>
+<b>Final Source: AmsaOne @ https://github.com/AmsaOne </b>
 <br>
 It is never expected but if you feel the need and my guides/wiring diagrams are useful to you, Donations are always happily accepted 
 <br>
