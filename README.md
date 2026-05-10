@@ -17,8 +17,8 @@ Please do not blindly follow these wiring diagrams without double checking all e
 <br>
 It is never expected but if you feel the need and my guides/wiring diagrams are useful to you, Donations are always happily accepted 
 <br>
-<b>BTC:</b> 1FW2 p2qn Bkhg z4yw 6xWg yc4L qE2A 6rQ7 m3
+<b>BTC:</b> 12RF 3PWZ RFYJ CTDV Y9NA ALTP POUC FGPDWK
 <br>
-<b>ETH:</b> 0x45 e7ff 9f3a b4 7d07 1286 0011 e7 7644 7ca3 e890 68
+<b>ETH:</b> 0XE7 92F4 B5B5 30 D4A9 DOBE EB9E 09 ABB2 5A3O C977 1B
 <br>
-<b>DOGE:</b> DFeU rquC EuAs XjbQ 43Di zKJE 8gHP DLn1 Hp</p>
+<b>DOGE:</b> D6X1 DRJL OBF9 9VZA Z310 R2V0 74GC OK1B 6C </p>
